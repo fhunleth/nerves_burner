@@ -32,10 +32,24 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
 
 ## Building
 
-```bash
-# Install dependencies
-mix deps.get
+### Quick Start
 
+The easiest way to build is using the installation script:
+
+```bash
+./install.sh
+```
+
+This will:
+- Check for Elixir and fwup
+- Build the executable
+- Show instructions for adding to PATH
+
+### Manual Build
+
+Alternatively, build manually:
+
+```bash
 # Build the executable
 mix escript.build
 ```
