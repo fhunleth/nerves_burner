@@ -27,3 +27,6 @@ nerves_burner-*.tar
 
 # Firmware files
 *.fw
+
+# Escript executable
+/nerves_burner
