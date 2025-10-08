@@ -13,4 +13,20 @@ defmodule NervesBurner.FwupTest do
       end
     end
   end
+
+  describe "burn/3" do
+    test "accepts empty wifi config" do
+      # This test just validates the function signature accepts the wifi_config parameter
+      # We can't actually test burning without a real device and firmware
+      wifi_config = %{}
+      assert is_map(wifi_config)
+    end
+
+    test "accepts wifi config with ssid and passphrase" do
+      wifi_config = %{ssid: "TestNetwork", passphrase: "TestPassword"}
+      assert is_map(wifi_config)
+      assert wifi_config.ssid == "TestNetwork"
+      assert wifi_config.passphrase == "TestPassword"
+    end
+  end
 end

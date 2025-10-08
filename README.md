@@ -16,6 +16,7 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
 - Automatic firmware download from GitHub releases with progress indication
 - Automatic MicroSD card detection via fwup
 - Safe device selection with confirmation prompts
+- Optional WiFi credentials configuration (for supported firmware images)
 
 ## Prerequisites
 
@@ -76,10 +77,11 @@ The script will guide you through:
 
 1. **Firmware Selection**: Choose from available firmware images
 2. **Platform Selection**: Select your target hardware platform
-3. **Download**: The firmware will be downloaded from GitHub releases
-4. **Device Selection**: Select the MicroSD card to burn (with rescan option)
-5. **Confirmation**: Confirm the operation (requires typing "yes")
-6. **Burning**: The firmware is written to the card with progress indication
+3. **WiFi Configuration** (Optional): Set WiFi SSID and passphrase for supported firmware
+4. **Download**: The firmware will be downloaded from GitHub releases
+5. **Device Selection**: Select the MicroSD card to burn (with rescan option)
+6. **Confirmation**: Confirm the operation (requires typing "yes")
+7. **Burning**: The firmware is written to the card with progress indication
 
 ## Example Session
 
@@ -104,6 +106,14 @@ Select a platform:
   7. mangopi_mq_pro
 
 Enter your choice (1-7): 4
+
+Would you like to configure WiFi credentials?
+(This is supported by Circuits Quickstart and Nerves Livebook firmware)
+
+Configure WiFi? (y/n): y
+
+Enter WiFi SSID: MyNetwork
+Enter WiFi passphrase: MyPassword123
 
 Downloading firmware...
 Downloading from: https://github.com/...
