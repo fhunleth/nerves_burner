@@ -17,7 +17,7 @@ defmodule NervesBurner.Downloader do
   defp get_latest_release_url(repo) do
     url = "https://api.github.com/repos/#{repo}/releases/latest"
 
-    case Req.get(url, headers: [{"accept", "application/vnd.github+json"}]) do
+    case Req.get(url, headers: github_headers()) do
       {:ok, %{status: 200, body: body}} ->
         case body do
           %{"assets_url" => assets_url} ->
@@ -30,8 +30,9 @@ defmodule NervesBurner.Downloader do
             {:error, "Unexpected response format"}
         end
 
-      {:ok, %{status: status}} ->
-        {:error, "HTTP #{status}"}
+      {:ok, %{status: status, body: body}} ->
+        error_message = extract_error_message(body, status)
+        {:error, error_message}
 
       {:error, reason} ->
         {:error, "HTTP request failed: #{inspect(reason)}"}
@@ -39,7 +40,7 @@ defmodule NervesBurner.Downloader do
   end
 
   defp find_asset_url(assets_url, asset_name) do
-    case Req.get(assets_url, headers: [{"accept", "application/vnd.github+json"}]) do
+    case Req.get(assets_url, headers: github_headers()) do
       {:ok, %{status: 200, body: assets}} when is_list(assets) ->
         case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
           %{"browser_download_url" => download_url} ->
@@ -49,8 +50,9 @@ defmodule NervesBurner.Downloader do
             {:error, "Asset '#{asset_name}' not found in release"}
         end
 
-      {:ok, %{status: status}} ->
-        {:error, "HTTP #{status}"}
+      {:ok, %{status: status, body: body}} ->
+        error_message = extract_error_message(body, status)
+        {:error, error_message}
 
       {:error, reason} ->
         {:error, "HTTP request failed: #{inspect(reason)}"}
@@ -70,11 +72,57 @@ defmodule NervesBurner.Downloader do
         IO.puts("✓ File saved to: #{dest_path}")
         {:ok, dest_path}
 
-      {:ok, %{status: status}} ->
-        {:error, "HTTP #{status}"}
+      {:ok, %{status: status, body: body}} ->
+        error_message = extract_error_message(body, status)
+        {:error, error_message}
 
       {:error, reason} ->
         {:error, "Download failed: #{inspect(reason)}"}
     end
+  end
+
+  # Build headers for GitHub API requests, including auth token if available
+  defp github_headers do
+    base_headers = [{"accept", "application/vnd.github+json"}]
+
+    case System.get_env("GITHUB_TOKEN") do
+      nil ->
+        base_headers
+
+      "" ->
+        base_headers
+
+      token ->
+        [{"authorization", "Bearer #{token}"} | base_headers]
+    end
+  end
+
+  # Extract error message from GitHub API response
+  defp extract_error_message(body, status) when is_map(body) do
+    case body do
+      %{"message" => message, "documentation_url" => doc_url} ->
+        "HTTP #{status}: #{message}. See #{doc_url}"
+
+      %{"message" => message} ->
+        "HTTP #{status}: #{message}"
+
+      _ ->
+        "HTTP #{status}"
+    end
+  end
+
+  defp extract_error_message(body, status) when is_binary(body) do
+    # Try to extract message from HTML or plain text response
+    if String.contains?(body, "API rate limit exceeded") do
+      "HTTP #{status}: API rate limit exceeded. Consider setting GITHUB_TOKEN environment variable."
+    else
+      # Truncate long responses
+      truncated = String.slice(body, 0, 200)
+      "HTTP #{status}: #{truncated}"
+    end
+  end
+
+  defp extract_error_message(_body, status) do
+    "HTTP #{status}"
   end
 end
