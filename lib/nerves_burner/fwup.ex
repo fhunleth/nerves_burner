@@ -3,6 +3,8 @@ defmodule NervesBurner.Fwup do
   Interface to the fwup tool for burning firmware to MicroSD cards.
   """
 
+  alias NervesBurner.InteractiveShell
+
   @doc """
   Scans for available devices (MicroSD cards).
   """
@@ -38,23 +40,24 @@ defmodule NervesBurner.Fwup do
   Burns firmware to the specified device.
   """
   def burn(firmware_path, device_path) do
-    args = ["-a", "-i", firmware_path, "-t", "complete", "-d", device_path]
+    fwup_args = ["-d", device_path, firmware_path]
 
-    case System.cmd("fwup", args, into: IO.stream(:stdio, :line)) do
-      {_output, 0} ->
-        :ok
-
-      {error, exit_code} ->
-        {:error, "fwup exited with code #{exit_code}: #{error}"}
-    end
-  rescue
-    e in ErlangError ->
-      if e.original == :enoent do
-        {:error,
-         "fwup not found. Please install fwup: https://github.com/fwup-home/fwup#installing"}
+    {cmd, args} =
+      if requires_sudo?() do
+        {"sudo", ["fwup" | fwup_args]}
       else
-        {:error, "Failed to run fwup: #{inspect(e)}"}
+        {"fwup", fwup_args}
       end
+
+    InteractiveShell.shell(cmd, args)
+  end
+
+  defp requires_sudo?() do
+    case :os.type() do
+      {:unix, :linux} -> true
+      {:unix, :darwin} -> false
+      _ -> false
+    end
   end
 
   # Parse a device line from fwup --detect output
