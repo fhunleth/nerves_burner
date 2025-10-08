@@ -81,8 +81,12 @@ lib/
 
 - Fetches latest release from GitHub API
 - Finds appropriate asset for platform
-- Downloads to temporary directory
+- Implements intelligent firmware caching:
+  - Stores firmware in OS-appropriate cache directories
+  - Verifies cached files using size and SHA256 hash
+  - Automatically re-downloads if verification fails
 - Uses `:req` library with built-in JSON support
+- Computes SHA256 hashes in chunks for memory efficiency
 
 ### Fwup Module (`NervesBurner.Fwup`)
 
