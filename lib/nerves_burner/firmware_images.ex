@@ -10,13 +10,13 @@ defmodule NervesBurner.FirmwareImages do
     [
       {"Circuits Quickstart",
        %{
-         repo: "nerves-project/circuits_quickstart",
+         repo: "elixir-circuits/circuits_quickstart",
          platforms: ["rpi0", "rpi3", "rpi4", "rpi5", "bbb", "osd32mp1", "mangopi_mq_pro"],
          asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end
        }},
       {"Nerves Livebook",
        %{
-         repo: "livebook-dev/nerves_livebook",
+         repo: "nerves-livebook/nerves_livebook",
          platforms: ["rpi0", "rpi3", "rpi4", "rpi5", "bbb", "osd32mp1", "mangopi_mq_pro"],
          asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end
        }}
