@@ -30,3 +30,6 @@ nerves_burner-*.tar
 
 # Escript executable
 /nerves_burner
+
+# Demo scripts
+demo_colors.exs
