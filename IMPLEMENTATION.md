@@ -51,7 +51,7 @@ lib/
 
 ### Key Design Decisions
 
-1. **No External Dependencies**: Uses Erlang's built-in `:httpc` for HTTP requests and custom regex-based JSON parsing to avoid dependency on hex.pm during development
+1. **Modern HTTP Client**: Uses the `:req` library for reliable HTTP requests with built-in JSON support
 
 2. **Escript Distribution**: Built as a standalone executable for easy distribution and usage
 
@@ -82,7 +82,7 @@ lib/
 - Fetches latest release from GitHub API
 - Finds appropriate asset for platform
 - Downloads to temporary directory
-- Custom regex-based JSON parsing (no external dependencies)
+- Uses `:req` library with built-in JSON support
 
 ### Fwup Module (`NervesBurner.Fwup`)
 
@@ -192,7 +192,7 @@ You can now safely remove the MicroSD card.
 - `lib/nerves_burner.ex` - Main application module
 - `lib/nerves_burner/cli.ex` - CLI interface (216 lines)
 - `lib/nerves_burner/firmware_images.ex` - Image configurations
-- `lib/nerves_burner/downloader.ex` - GitHub download logic (166 lines)
+- `lib/nerves_burner/downloader.ex` - GitHub download logic (80 lines, simplified with `:req`)
 - `lib/nerves_burner/fwup.ex` - fwup integration (80 lines)
 - `test/test_helper.exs` - Test configuration
 - `test/nerves_burner/firmware_images_test.exs` - Image config tests

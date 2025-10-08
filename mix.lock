@@ -1,0 +1,13 @@
+%{
+  "castore": {:git, "https://github.com/elixir-mint/castore.git", "428328b630f7247a9eb2380792adda9d5e537673", [tag: "v1.0.9"]},
+  "finch": {:git, "https://github.com/sneako/finch.git", "da7087c44c0b9c8e501021d86671f8b34b460dbb", [tag: "v0.18.0"]},
+  "hpax": {:git, "https://github.com/elixir-mint/hpax.git", "46fece83ea6f7c5c5efa4d6a892a5e28f932b1d0", [tag: "v1.0.0"]},
+  "jason": {:git, "https://github.com/michalmuskala/jason.git", "926d2ac6cc0271b9a7079b2ec16ae0cf802f7963", [tag: "v1.4.4"]},
+  "mime": {:git, "https://github.com/elixir-plug/mime.git", "30db90a63ca14732f9c6b9d733c89cd161451b15", [tag: "v2.0.6"]},
+  "mint": {:git, "https://github.com/elixir-mint/mint.git", "5d0c6e9aba84618a7fd374cfa49ad392d2125061", [tag: "v1.6.2"]},
+  "nimble_options": {:git, "https://github.com/dashbitco/nimble_options.git", "cc80e7e6fdb9bbbe6a4614b2e2e81ca4012fc264", [tag: "v1.1.1"]},
+  "nimble_ownership": {:git, "https://github.com/dashbitco/nimble_ownership.git", "e0a3025bfe0440571bf122deb167ca00ece3f5fb", [tag: "v0.3.0"]},
+  "nimble_pool": {:git, "https://github.com/dashbitco/nimble_pool.git", "9829f2753851694dd1b34682e0abede895966ca5", [tag: "v1.1.0"]},
+  "req": {:git, "https://github.com/wojtekmach/req.git", "3852d7e1d0861e7c4a6ae176dba2224d1aaf786e", [tag: "v0.4.14"]},
+  "telemetry": {:git, "https://github.com/beam-telemetry/telemetry.git", "8d8af76720856bcf26641ee1307658ad8f25e466", [tag: "v1.3.0"]},
+}

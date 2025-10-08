@@ -2,11 +2,11 @@
 
 ## 📊 Project Statistics
 
-- **Total Code Lines**: 487 lines of Elixir code
+- **Total Code Lines**: 401 lines of Elixir code (simplified with `:req`)
 - **Test Coverage**: 65 lines of test code (6 tests, all passing)
 - **Documentation**: 353 lines of documentation
 - **Modules**: 5 main modules + CLI entry point
-- **Dependencies**: Zero external dependencies (uses built-in Erlang)
+- **Dependencies**: Uses modern `:req` library for HTTP/JSON
 
 ## 🎯 Requirements Fulfillment
 
@@ -38,7 +38,7 @@
 
 ## 📦 Module Breakdown
 
-### 1. NervesBurner.CLI (216 lines)
+### 1. NervesBurner.CLI (216 lines - unchanged)
 **Purpose**: Interactive command-line interface  
 **Key Functions**:
 - `main/1` - Entry point with flow control
@@ -47,23 +47,23 @@
 - `select_device/0` - Device selection with rescan
 - `confirm_device/1` - Safety confirmation dialog
 
-### 2. NervesBurner.Downloader (166 lines)
+### 2. NervesBurner.Downloader (80 lines - simplified with :req)
 **Purpose**: GitHub release download  
 **Key Functions**:
 - `download/2` - Main download coordinator
-- `get_latest_release_url/1` - Fetch release info from GitHub API
+- `get_latest_release_url/1` - Fetch release info from GitHub API using `:req`
 - `find_asset_url/2` - Locate firmware asset
-- `http_download/2` - Stream download to disk
-- `parse_json/1` - Custom regex-based JSON parser
+- `download_file/2` - Stream download to disk using `:req`
 
-### 3. NervesBurner.Fwup (80 lines)
+
+### 3. NervesBurner.Fwup (80 lines - unchanged)
 **Purpose**: Integration with fwup utility  
 **Key Functions**:
 - `scan_devices/0` - List available MicroSD cards
 - `burn/2` - Write firmware to device
 - `parse_device_line/1` - Parse fwup output
 
-### 4. NervesBurner.FirmwareImages (25 lines)
+### 4. NervesBurner.FirmwareImages (25 lines - unchanged)
 **Purpose**: Firmware configuration  
 **Data**: Lists available images and platforms
 
@@ -147,7 +147,7 @@ Start
 
 ## 🌟 Highlights
 
-1. **Zero Dependencies**: No hex packages required
+1. **Modern HTTP Client**: Uses `:req` library for reliable HTTP and JSON handling
 2. **Portable**: Single escript executable
 3. **Safe**: Multiple confirmation steps
 4. **User-Friendly**: Clear prompts and messages
