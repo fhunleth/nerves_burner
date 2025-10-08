@@ -67,18 +67,63 @@ defmodule NervesBurner.Downloader do
 
     IO.puts(IO.ANSI.format([:cyan, "Downloading from: ", :reset, "#{url}"]))
 
-    case Req.get(url, into: File.stream!(dest_path)) do
-      {:ok, %{status: 200}} ->
+    case do_download(url, dest_path) do
+      :ok ->
         IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
         {:ok, dest_path}
-
-      {:ok, %{status: status, body: body}} ->
-        error_message = extract_error_message(body, status)
-        {:error, error_message}
 
       {:error, reason} ->
         {:error, "Download failed: #{inspect(reason)}"}
     end
+  end
+
+  defp do_download(url, path) do
+    # Try to get total size for a proper percentage bar
+    total =
+      case Req.head!(url: url).headers |> Map.get("content-length") do
+        [len | _] -> String.to_integer(len)
+        _ -> 0
+      end
+
+    {:ok, io} = File.open(path, [:write, :binary])
+
+    # Stream the body; update the bar on each chunk
+    fun = fn
+      {:status, _}, {req, res} ->
+        {:cont, {req, res}}
+
+      {:headers, _}, {req, res} ->
+        {:cont, {req, res}}
+
+      {:data, chunk}, {req, res} ->
+        :ok = IO.binwrite(io, chunk)
+
+        downloaded =
+          (Req.Response.get_private(res, :downloaded) || 0)
+          |> Kernel.+(byte_size(chunk))
+
+        res = Req.Response.put_private(res, :downloaded, downloaded)
+
+        if total > 0 do
+          ProgressBar.render(downloaded, total, suffix: :bytes)
+        end
+
+        {:cont, {req, res}}
+    end
+
+    if total > 0 do
+      Req.get!(url: url, raw: true, into: fun)
+    else
+      # No Content-Length? Show an indeterminate animation while downloading.
+      ProgressBar.render_indeterminate([text: "Downloading…"], fn ->
+        Req.get!(url: url, raw: true, into: fun)
+      end)
+    end
+
+    File.close(io)
+    :ok
+  rescue
+    reason -> {:error, reason}
   end
 
   # Build headers for GitHub API requests, including auth token if available

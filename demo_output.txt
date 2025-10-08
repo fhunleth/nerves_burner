@@ -21,7 +21,7 @@ Enter your choice (1-7): 4
 
 Downloading firmware...
 Downloading from: https://github.com/nerves-project/circuits_quickstart/releases/download/v0.12.0/circuits_quickstart_rpi5.fw
-✓ Download complete: /tmp/firmware_rpi5_1696685943210.fw
+✓ File saved to: /tmp/firmware_rpi5_1696685943210.fw
 
 Scanning for MicroSD cards...
 

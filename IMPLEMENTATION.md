@@ -22,6 +22,7 @@ The implementation follows the exact flow specified:
 3. **Download image from GitHub releases with progress** ✅
    - Downloads from latest release
    - Shows download URL and completion status
+   - Progress indication via Req's built-in http_download
    - Implemented in `NervesBurner.Downloader`
 
 4. **Call fwup to scan for MicroSD cards** ✅
