@@ -30,9 +30,11 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
    - On macOS: `brew install fwup`
    - On Windows: Download the installer from releases
 
-3. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` environment variable:
+3. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` or `GITHUB_API_TOKEN` environment variable:
    ```bash
    export GITHUB_TOKEN=your_github_personal_access_token
+   # or
+   export GITHUB_API_TOKEN=your_github_personal_access_token
    ```
    The token only needs public repository read access. Create one at: https://github.com/settings/tokens
 

@@ -32,10 +32,10 @@ defmodule NervesBurner.Downloader do
 
       {:ok, %{status: status, body: body}} ->
         error_message = extract_error_message(body, status)
-        {:error, error_message}
+        {:error, "Failed to fetch release info from #{url}. #{error_message}"}
 
       {:error, reason} ->
-        {:error, "HTTP request failed: #{inspect(reason)}"}
+        {:error, "HTTP request failed for #{url}: #{inspect(reason)}"}
     end
   end
 
@@ -52,10 +52,10 @@ defmodule NervesBurner.Downloader do
 
       {:ok, %{status: status, body: body}} ->
         error_message = extract_error_message(body, status)
-        {:error, error_message}
+        {:error, "Failed to fetch assets from #{assets_url}. #{error_message}"}
 
       {:error, reason} ->
-        {:error, "HTTP request failed: #{inspect(reason)}"}
+        {:error, "HTTP request failed for #{assets_url}: #{inspect(reason)}"}
     end
   end
 
@@ -85,7 +85,9 @@ defmodule NervesBurner.Downloader do
   defp github_headers do
     base_headers = [{"accept", "application/vnd.github+json"}]
 
-    case System.get_env("GITHUB_TOKEN") do
+    token = System.get_env("GITHUB_TOKEN") || System.get_env("GITHUB_API_TOKEN")
+
+    case token do
       nil ->
         base_headers
 
@@ -93,7 +95,8 @@ defmodule NervesBurner.Downloader do
         base_headers
 
       token ->
-        [{"authorization", "Bearer #{token}"} | base_headers]
+        # GitHub API uses 'token' prefix, not 'Bearer'
+        [{"authorization", "token #{token}"} | base_headers]
     end
   end
 
