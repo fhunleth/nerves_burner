@@ -94,9 +94,11 @@ defmodule NervesBurner.Downloader do
 
     case Req.get(url, into: File.stream!(dest_path)) do
       {:ok, %{status: 200}} ->
-        # Verify the downloaded file
-        case verify_file(dest_path, asset_info) do
+        # Verify the downloaded file (size only, no hash yet)
+        case verify_size(dest_path, asset_info.size) do
           :ok ->
+            # Store hash for future verification
+            store_hash(dest_path)
             IO.puts("✓ File saved to: #{dest_path}")
             {:ok, dest_path}
 
@@ -158,24 +160,67 @@ defmodule NervesBurner.Downloader do
 
   defp verify_file(file_path, asset_info) do
     # Verify file size if available
-    case asset_info.size do
-      nil ->
-        # No size information available, assume valid
-        :ok
-
-      expected_size ->
-        case File.stat(file_path) do
-          {:ok, %{size: actual_size}} ->
-            if actual_size == expected_size do
-              :ok
-            else
-              {:error, "Size mismatch: expected #{expected_size}, got #{actual_size}"}
-            end
-
-          {:error, reason} ->
-            {:error, "Failed to stat file: #{inspect(reason)}"}
-        end
+    with :ok <- verify_size(file_path, asset_info.size),
+         :ok <- verify_hash(file_path, asset_info) do
+      :ok
     end
+  end
+
+  defp verify_size(_file_path, nil), do: :ok
+
+  defp verify_size(file_path, expected_size) do
+    case File.stat(file_path) do
+      {:ok, %{size: actual_size}} ->
+        if actual_size == expected_size do
+          :ok
+        else
+          {:error, "Size mismatch: expected #{expected_size}, got #{actual_size}"}
+        end
+
+      {:error, reason} ->
+        {:error, "Failed to stat file: #{inspect(reason)}"}
+    end
+  end
+
+  defp verify_hash(file_path, _asset_info) do
+    hash_file = file_path <> ".sha256"
+
+    # If we have a stored hash, verify it
+    if File.exists?(hash_file) do
+      case File.read(hash_file) do
+        {:ok, stored_hash} ->
+          computed_hash = compute_sha256(file_path)
+
+          if String.trim(stored_hash) == computed_hash do
+            :ok
+          else
+            {:error, "Hash mismatch"}
+          end
+
+        {:error, _} ->
+          # Can't read hash file, assume valid
+          :ok
+      end
+    else
+      # No hash file yet, assume valid
+      :ok
+    end
+  end
+
+  defp compute_sha256(file_path) do
+    file_path
+    |> File.stream!([], 2048)
+    |> Enum.reduce(:crypto.hash_init(:sha256), fn chunk, acc ->
+      :crypto.hash_update(acc, chunk)
+    end)
+    |> :crypto.hash_final()
+    |> Base.encode16(case: :lower)
+  end
+
+  defp store_hash(file_path) do
+    hash = compute_sha256(file_path)
+    hash_file = file_path <> ".sha256"
+    File.write(hash_file, hash)
   end
 
   # Build headers for GitHub API requests, including auth token if available
