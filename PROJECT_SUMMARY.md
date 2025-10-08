@@ -47,13 +47,17 @@
 - `select_device/0` - Device selection with rescan
 - `confirm_device/1` - Safety confirmation dialog
 
-### 2. NervesBurner.Downloader (80 lines - simplified with :req)
-**Purpose**: GitHub release download  
+### 2. NervesBurner.Downloader (273 lines - enhanced with caching)
+**Purpose**: GitHub release download with intelligent caching  
 **Key Functions**:
 - `download/2` - Main download coordinator
 - `get_latest_release_url/1` - Fetch release info from GitHub API using `:req`
-- `find_asset_url/2` - Locate firmware asset
-- `download_file/2` - Stream download to disk using `:req`
+- `find_asset_url/2` - Locate firmware asset and extract metadata
+- `download_file/2` - Check cache or download to cache directory
+- `get_cache_dir/0` - Determine OS-appropriate cache directory
+- `verify_file/2` - Verify cached file size and hash
+- `compute_sha256/1` - Compute SHA256 hash of firmware file
+- `store_hash/1` - Store hash for future verification
 
 
 ### 3. NervesBurner.Fwup (80 lines - unchanged)

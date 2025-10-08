@@ -14,6 +14,10 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
   - OSD32MP1 (osd32mp1)
   - MangoPi MQ Pro (mangopi_mq_pro)
 - Automatic firmware download from GitHub releases with progress indication
+- **Intelligent firmware caching** to avoid repeated downloads:
+  - Caches firmware in OS-appropriate directories
+  - Verifies cached files using size and SHA256 hash
+  - Automatically re-downloads if cache is invalid
 - Automatic MicroSD card detection via fwup
 - Safe device selection with confirmation prompts
 - Optional WiFi credentials configuration (for supported firmware images)
@@ -146,6 +150,32 @@ You can now safely remove the MicroSD card.
 - Shows device size to help identify the correct device
 - Provides option to rescan devices
 - Clear warnings about data loss
+
+## Firmware Caching
+
+To improve performance and save bandwidth, nerves_burner caches downloaded firmware files in OS-appropriate cache directories:
+
+- **Linux**: `~/.cache/nerves_burner` (respects `$XDG_CACHE_HOME` if set)
+- **macOS**: `~/Library/Caches/nerves_burner`
+- **Windows**: `%LOCALAPPDATA%\nerves_burner\cache`
+
+Cached files are verified before use by checking:
+1. File size matches the expected size from GitHub
+2. SHA256 hash matches the stored hash from the original download
+
+If a cached file fails verification, it is automatically re-downloaded. This ensures you always get the correct firmware while avoiding unnecessary downloads when burning multiple cards with the same firmware.
+
+To clear the cache manually:
+```bash
+# Linux
+rm -rf ~/.cache/nerves_burner
+
+# macOS
+rm -rf ~/Library/Caches/nerves_burner
+
+# Windows
+rmdir /s "%LOCALAPPDATA%\nerves_burner\cache"
+```
 
 ## License
 
