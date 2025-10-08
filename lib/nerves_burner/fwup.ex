@@ -38,8 +38,9 @@ defmodule NervesBurner.Fwup do
 
   @doc """
   Burns firmware to the specified device.
+  Optionally accepts WiFi configuration to pass as environment variables.
   """
-  def burn(firmware_path, device_path) do
+  def burn(firmware_path, device_path, wifi_config \\ %{}) do
     fwup_args = ["-d", device_path, firmware_path]
 
     {cmd, args} =
@@ -49,7 +50,29 @@ defmodule NervesBurner.Fwup do
         {"fwup", fwup_args}
       end
 
-    InteractiveShell.shell(cmd, args)
+    env = build_wifi_env(wifi_config)
+
+    InteractiveShell.shell(cmd, args, env: env)
+  end
+
+  defp build_wifi_env(wifi_config) do
+    env = %{}
+
+    env =
+      if Map.has_key?(wifi_config, :ssid) do
+        Map.put(env, "NERVES_WIFI_SSID", wifi_config.ssid)
+      else
+        env
+      end
+
+    env =
+      if Map.has_key?(wifi_config, :passphrase) do
+        Map.put(env, "NERVES_WIFI_PASSPHRASE", wifi_config.passphrase)
+      else
+        env
+      end
+
+    env
   end
 
   defp requires_sudo?() do

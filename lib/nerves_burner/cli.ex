@@ -8,9 +8,10 @@ defmodule NervesBurner.CLI do
 
     with {:ok, image_config} <- select_firmware_image(),
          {:ok, platform} <- select_platform(image_config),
+         {:ok, wifi_config} <- get_wifi_credentials(),
          {:ok, firmware_path} <- download_firmware(image_config, platform),
          {:ok, device} <- select_device(),
-         :ok <- burn_firmware(firmware_path, device) do
+         :ok <- burn_firmware(firmware_path, device, wifi_config) do
       IO.puts("\n✓ Firmware burned successfully!")
       IO.puts("You can now safely remove the MicroSD card.\n")
     else
@@ -62,6 +63,37 @@ defmodule NervesBurner.CLI do
 
       error ->
         error
+    end
+  end
+
+  defp get_wifi_credentials do
+    IO.puts("\nWould you like to configure WiFi credentials?")
+    IO.puts("(This is supported by Circuits Quickstart and Nerves Livebook firmware)\n")
+
+    case get_user_input("Configure WiFi? (y/n): ") do
+      input when input in ["y", "Y", "yes", "Yes", "YES"] ->
+        get_wifi_details()
+
+      _ ->
+        {:ok, %{}}
+    end
+  end
+
+  defp get_wifi_details do
+    ssid = get_user_input("\nEnter WiFi SSID: ")
+
+    if ssid == "" do
+      IO.puts("WiFi SSID cannot be empty. Skipping WiFi configuration.")
+      {:ok, %{}}
+    else
+      passphrase = get_user_input("Enter WiFi passphrase: ")
+
+      if passphrase == "" do
+        IO.puts("WiFi passphrase cannot be empty. Skipping WiFi configuration.")
+        {:ok, %{}}
+      else
+        {:ok, %{ssid: ssid, passphrase: passphrase}}
+      end
     end
   end
 
@@ -152,11 +184,16 @@ defmodule NervesBurner.CLI do
     end
   end
 
-  defp burn_firmware(firmware_path, device_path) do
+  defp burn_firmware(firmware_path, device_path, wifi_config) do
     IO.puts("\nBurning firmware to #{device_path}...")
+
+    if Map.has_key?(wifi_config, :ssid) do
+      IO.puts("Setting WiFi SSID: #{wifi_config.ssid}")
+    end
+
     IO.puts("This may take several minutes. Please do not remove the card.\n")
 
-    case NervesBurner.Fwup.burn(firmware_path, device_path) do
+    case NervesBurner.Fwup.burn(firmware_path, device_path, wifi_config) do
       :ok ->
         :ok
 
