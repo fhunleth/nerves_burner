@@ -18,7 +18,46 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
 - Safe device selection with confirmation prompts
 - Optional WiFi credentials configuration (for supported firmware images)
 
+## Installation
+
+### Option 1: Download Pre-built Executable (Recommended)
+
+Download the latest pre-built `nerves_burner` executable from the [Releases](https://github.com/fhunleth/nerves_burner/releases) page:
+
+```bash
+# Download the latest release (replace VERSION with the actual version)
+curl -L -o nerves_burner https://github.com/fhunleth/nerves_burner/releases/download/vVERSION/nerves_burner
+chmod +x nerves_burner
+
+# Run it
+./nerves_burner
+```
+
+You only need **fwup** installed to use the pre-built executable. No Elixir/Erlang installation required!
+
+### Option 2: Build from Source
+
+If you prefer to build from source, see the [Building](#building) section below.
+
 ## Prerequisites
+
+### For Pre-built Executable
+
+1. **fwup**: Install the fwup utility for burning firmware
+   - Installation instructions: https://github.com/fwup-home/fwup#installing
+   - On Ubuntu/Debian: Download the .deb package from releases
+   - On macOS: `brew install fwup`
+   - On Windows: Download the installer from releases
+
+2. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` or `GITHUB_API_TOKEN` environment variable:
+   ```bash
+   export GITHUB_TOKEN=your_github_personal_access_token
+   # or
+   export GITHUB_API_TOKEN=your_github_personal_access_token
+   ```
+   The token only needs public repository read access. Create one at: https://github.com/settings/tokens
+
+### For Building from Source
 
 1. **Elixir and Erlang**: Install Elixir (version 1.14 or later) and Erlang/OTP
    - On Ubuntu/Debian: `sudo apt install erlang elixir`
