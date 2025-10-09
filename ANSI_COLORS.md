@@ -24,24 +24,19 @@ The following color scheme has been applied consistently throughout the applicat
 
 ## ANSI Art Banner
 
-A professional ASCII art logo displaying "NERVES" has been added to the welcome screen:
+A compact, professional logo displaying the Nerves brand has been added to the welcome screen. The logo uses ANSI 256-color escape codes for precise color control:
 
-```
-███╗   ██╗███████╗██████╗ ██╗   ██╗███████╗███████╗
-████╗  ██║██╔════╝██╔══██╗██║   ██║██╔════╝██╔════╝
-██╔██╗ ██║█████╗  ██████╔╝██║   ██║█████╗  ███████╗
-██║╚██╗██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██╔══╝  ╚════██║
-██║ ╚████║███████╗██║  ██║ ╚████╔╝ ███████╗███████║
-╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚══════╝
-```
+- Dark blue (ANSI color 24) for the left portion
+- Light blue (ANSI color 74) for the right portion  
+- Default color for the "N E R V E S" text
 
-Followed by the tagline: "Firmware Burner - Making IoT Easy"
+The logo is embedded directly in the code with raw ANSI escape sequences for optimal rendering across different terminals.
 
 ## Colorized Sections
 
 ### 1. Welcome Banner
-- NERVES logo in cyan (bright)
-- Tagline in magenta
+- NERVES logo with dark blue (24) and light blue (74) ANSI colors
+- "N E R V E S" text in default terminal color
 
 ### 2. Firmware Selection Menu
 - Header in cyan (bright)

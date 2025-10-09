@@ -33,3 +33,4 @@ nerves_burner-*.tar
 
 # Demo scripts
 demo_colors.exs
+demo_new_logo.exs
