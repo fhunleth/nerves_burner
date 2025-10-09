@@ -34,8 +34,7 @@ defmodule NervesBurner.CLI do
     \e[38;5;24m███▌    \e[38;5;74m▀▀████\e[0m
     """
 
-    IO.puts(logo)
-    IO.puts("")
+    IO.puts(["\n", logo])
   end
 
   defp select_firmware_image do
