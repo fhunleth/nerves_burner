@@ -65,11 +65,11 @@ defmodule NervesBurner.Downloader do
     filename = "firmware_#{platform}_#{:os.system_time(:millisecond)}.fw"
     dest_path = Path.join(tmp_dir, filename)
 
-    IO.puts("Downloading from: #{url}")
+    IO.puts(IO.ANSI.format([:cyan, "Downloading from: ", :reset, "#{url}"]))
 
     case Req.get(url, into: File.stream!(dest_path)) do
       {:ok, %{status: 200}} ->
-        IO.puts("✓ File saved to: #{dest_path}")
+        IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
         {:ok, dest_path}
 
       {:ok, %{status: status, body: body}} ->
