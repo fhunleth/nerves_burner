@@ -20,7 +20,10 @@ defmodule NervesBurner.CLI do
         System.halt(0)
 
       {:error, reason} ->
-        IO.puts(IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset]))
+        IO.puts(
+          IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset])
+        )
+
         System.halt(1)
     end
   end
@@ -48,7 +51,10 @@ defmodule NervesBurner.CLI do
       IO.puts(IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " #{name}"]))
     end)
 
-    case get_user_choice(IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(images)}): ", :reset]), 1..length(images)) do
+    case get_user_choice(
+           IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(images)}): ", :reset]),
+           1..length(images)
+         ) do
       {:ok, choice} ->
         {_name, config} = Enum.at(images, choice - 1)
         {:ok, config}
@@ -69,7 +75,10 @@ defmodule NervesBurner.CLI do
       IO.puts(IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " #{platform}"]))
     end)
 
-    case get_user_choice(IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(platforms)}): ", :reset]), 1..length(platforms)) do
+    case get_user_choice(
+           IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(platforms)}): ", :reset]),
+           1..length(platforms)
+         ) do
       {:ok, choice} ->
         {:ok, Enum.at(platforms, choice - 1)}
 
@@ -79,8 +88,23 @@ defmodule NervesBurner.CLI do
   end
 
   defp get_wifi_credentials do
-    IO.puts(IO.ANSI.format(["\n", :cyan, :bright, "Would you like to configure WiFi credentials?", :reset]))
-    IO.puts(IO.ANSI.format([:cyan, "(This is supported by Circuits Quickstart and Nerves Livebook firmware)\n", :reset]))
+    IO.puts(
+      IO.ANSI.format([
+        "\n",
+        :cyan,
+        :bright,
+        "Would you like to configure WiFi credentials?",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        :cyan,
+        "(This is supported by Circuits Quickstart and Nerves Livebook firmware)\n",
+        :reset
+      ])
+    )
 
     case get_user_input(IO.ANSI.format([:green, "Configure WiFi? (y/n): ", :reset])) do
       input when input in ["y", "Y", "yes", "Yes", "YES"] ->
@@ -95,13 +119,27 @@ defmodule NervesBurner.CLI do
     ssid = get_user_input(IO.ANSI.format(["\n", :green, "Enter WiFi SSID: ", :reset]))
 
     if ssid == "" do
-      IO.puts(IO.ANSI.format([:yellow, "WiFi SSID cannot be empty. Skipping WiFi configuration.", :reset]))
+      IO.puts(
+        IO.ANSI.format([
+          :yellow,
+          "WiFi SSID cannot be empty. Skipping WiFi configuration.",
+          :reset
+        ])
+      )
+
       {:ok, %{}}
     else
       passphrase = get_user_input(IO.ANSI.format([:green, "Enter WiFi passphrase: ", :reset]))
 
       if passphrase == "" do
-        IO.puts(IO.ANSI.format([:yellow, "WiFi passphrase cannot be empty. Skipping WiFi configuration.", :reset]))
+        IO.puts(
+          IO.ANSI.format([
+            :yellow,
+            "WiFi passphrase cannot be empty. Skipping WiFi configuration.",
+            :reset
+          ])
+        )
+
         {:ok, %{}}
       else
         {:ok, %{ssid: ssid, passphrase: passphrase}}
@@ -130,7 +168,9 @@ defmodule NervesBurner.CLI do
       {:ok, []} ->
         IO.puts(IO.ANSI.format(["\n", :yellow, "No MicroSD cards detected.", :reset]))
 
-        case get_user_input(IO.ANSI.format(["\n", :green, "Would you like to rescan? (y/n): ", :reset])) do
+        case get_user_input(
+               IO.ANSI.format(["\n", :green, "Would you like to rescan? (y/n): ", :reset])
+             ) do
           input when input in ["y", "Y", "yes", "Yes"] ->
             select_device()
 
@@ -168,7 +208,12 @@ defmodule NervesBurner.CLI do
     IO.puts(IO.ANSI.format(["  ", :yellow, "#{length(devices) + 1}.", :reset, " Rescan"]))
 
     case get_user_choice(
-           IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(devices) + 1}): ", :reset]),
+           IO.ANSI.format([
+             "\n",
+             :green,
+             "Enter your choice (1-#{length(devices) + 1}): ",
+             :reset
+           ]),
            1..(length(devices) + 1)
          ) do
       {:ok, choice} when choice == length(devices) + 1 ->
@@ -184,9 +229,22 @@ defmodule NervesBurner.CLI do
   end
 
   defp confirm_device(device) do
-    IO.puts(IO.ANSI.format(["\n", :red, :bright, "⚠️  WARNING: ", :reset, :red, "All data on #{device.path} will be erased!", :reset]))
+    IO.puts(
+      IO.ANSI.format([
+        "\n",
+        :red,
+        :bright,
+        "⚠️  WARNING: ",
+        :reset,
+        :red,
+        "All data on #{device.path} will be erased!",
+        :reset
+      ])
+    )
 
-    case get_user_input(IO.ANSI.format([:yellow, "Are you sure you want to continue? (yes/no): ", :reset])) do
+    case get_user_input(
+           IO.ANSI.format([:yellow, "Are you sure you want to continue? (yes/no): ", :reset])
+         ) do
       input when input in ["yes", "Yes", "YES"] ->
         {:ok, device.path}
 
@@ -197,13 +255,21 @@ defmodule NervesBurner.CLI do
   end
 
   defp burn_firmware(firmware_path, device_path, wifi_config) do
-    IO.puts(IO.ANSI.format(["\n", :cyan, :bright, "Burning firmware to #{device_path}...", :reset]))
+    IO.puts(
+      IO.ANSI.format(["\n", :cyan, :bright, "Burning firmware to #{device_path}...", :reset])
+    )
 
     if Map.has_key?(wifi_config, :ssid) do
       IO.puts(IO.ANSI.format([:cyan, "Setting WiFi SSID: #{wifi_config.ssid}", :reset]))
     end
 
-    IO.puts(IO.ANSI.format([:yellow, "This may take several minutes. Please do not remove the card.\n", :reset]))
+    IO.puts(
+      IO.ANSI.format([
+        :yellow,
+        "This may take several minutes. Please do not remove the card.\n",
+        :reset
+      ])
+    )
 
     case NervesBurner.Fwup.burn(firmware_path, device_path, wifi_config) do
       :ok ->
