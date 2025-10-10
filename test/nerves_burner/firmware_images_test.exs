@@ -48,6 +48,7 @@ defmodule NervesBurner.FirmwareImagesTest do
 
     test "includes all expected platforms" do
       images = NervesBurner.FirmwareImages.list()
+
       expected_platforms = [
         "rpi",
         "rpi0",
