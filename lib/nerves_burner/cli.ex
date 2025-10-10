@@ -72,7 +72,8 @@ defmodule NervesBurner.CLI do
     platforms
     |> Enum.with_index(1)
     |> Enum.each(fn {platform, index} ->
-      IO.puts(IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " #{platform}"]))
+      friendly_name = NervesBurner.FirmwareImages.platform_name(platform)
+      IO.puts(IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " #{friendly_name}"]))
     end)
 
     case get_user_choice(

@@ -45,5 +45,57 @@ defmodule NervesBurner.FirmwareImagesTest do
         Enum.each(config.platforms, &assert(is_binary(&1)))
       end)
     end
+
+    test "includes all expected platforms" do
+      images = NervesBurner.FirmwareImages.list()
+      expected_platforms = [
+        "rpi",
+        "rpi0",
+        "rpi0_2",
+        "rpi2",
+        "rpi3",
+        "rpi3a",
+        "rpi4",
+        "rpi5",
+        "bbb",
+        "osd32mp1",
+        "npi_imx6ull",
+        "grisp2",
+        "mangopi_mq_pro"
+      ]
+
+      Enum.each(images, fn {_name, config} ->
+        Enum.each(expected_platforms, fn platform ->
+          assert platform in config.platforms,
+                 "Platform #{platform} should be in the platforms list"
+        end)
+      end)
+    end
+  end
+
+  describe "platform_name/1" do
+    test "returns friendly names for known platforms" do
+      assert NervesBurner.FirmwareImages.platform_name("rpi") ==
+               "Raspberry Pi Model B (rpi)"
+
+      assert NervesBurner.FirmwareImages.platform_name("rpi0") ==
+               "Raspberry Pi Zero (rpi0)"
+
+      assert NervesBurner.FirmwareImages.platform_name("rpi0_2") ==
+               "Raspberry Pi Zero 2W in 64-bit mode (rpi0_2)"
+
+      assert NervesBurner.FirmwareImages.platform_name("rpi3a") ==
+               "Raspberry Pi Zero 2W or 3A in 32-bit mode (rpi3a)"
+
+      assert NervesBurner.FirmwareImages.platform_name("bbb") ==
+               "Beaglebone Black and other Beaglebone variants (bbb)"
+
+      assert NervesBurner.FirmwareImages.platform_name("grisp2") ==
+               "GRiSP 2 (grisp2)"
+    end
+
+    test "returns platform code for unknown platforms" do
+      assert NervesBurner.FirmwareImages.platform_name("unknown") == "unknown"
+    end
   end
 end
