@@ -47,8 +47,18 @@ defmodule NervesBurner.CLI do
 
     images
     |> Enum.with_index(1)
-    |> Enum.each(fn {{name, _config}, index} ->
-      IO.puts(IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " #{name}"]))
+    |> Enum.each(fn {{name, config}, index} ->
+      IO.puts(
+        IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " ", :bright, "#{name}", :reset])
+      )
+
+      if Map.has_key?(config, :description) do
+        IO.puts(IO.ANSI.format(["     ", :faint, "#{config.description}", :reset]))
+      end
+
+      if Map.has_key?(config, :url) do
+        IO.puts(IO.ANSI.format(["     ", :cyan, "#{config.url}", :reset]))
+      end
     end)
 
     case get_user_choice(

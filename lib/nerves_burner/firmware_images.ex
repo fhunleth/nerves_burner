@@ -11,6 +11,9 @@ defmodule NervesBurner.FirmwareImages do
       {"Circuits Quickstart",
        %{
          repo: "elixir-circuits/circuits_quickstart",
+         description:
+           "Simple examples for GPIO, I2C, SPI and more - perfect for hardware experimentation",
+         url: "https://github.com/elixir-circuits/circuits_quickstart",
          platforms: [
            "rpi",
            "rpi0",
@@ -31,6 +34,8 @@ defmodule NervesBurner.FirmwareImages do
       {"Nerves Livebook",
        %{
          repo: "nerves-livebook/nerves_livebook",
+         description: "Interactive notebooks for learning Elixir and Nerves on embedded devices",
+         url: "https://github.com/nerves-livebook/nerves_livebook",
          platforms: [
            "rpi",
            "rpi0",
