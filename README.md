@@ -16,6 +16,10 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
   - GRiSP 2 (grisp2)
   - MangoPi MQ Pro (mangopi_mq_pro)
 - Automatic firmware download from GitHub releases with progress indication
+- **Intelligent firmware caching** to avoid repeated downloads:
+  - Caches firmware in OS-appropriate directories
+  - Verifies cached files using size and SHA256 hash
+  - Automatically re-downloads if cache is invalid
 - Automatic MicroSD card detection via fwup
 - Safe device selection with confirmation prompts
 - Optional WiFi credentials configuration (for supported firmware images)
@@ -196,6 +200,24 @@ You can now safely remove the MicroSD card.
 - Shows device size to help identify the correct device
 - Provides option to rescan devices
 - Clear warnings about data loss
+
+## Firmware Caching
+
+To improve performance and save bandwidth, nerves_burner caches downloaded firmware files in OS-appropriate cache directories following platform conventions:
+
+- **Linux**: `~/.cache/nerves_burner` (respects `$XDG_CACHE_HOME` if set)
+- **macOS**: `~/Library/Caches/nerves_burner`
+- **Windows**: User's local app data cache directory
+
+Cached files are verified before use by checking:
+1. File size matches the expected size from GitHub
+2. SHA256 hash matches the expected hash:
+   - If the release includes a `SHA256SUMS` file, the hash is extracted from it and used for verification
+   - Otherwise, the hash is computed locally after the first download
+
+If a cached file fails verification, it is automatically re-downloaded. This ensures you always get the correct firmware while avoiding unnecessary downloads when burning multiple cards with the same firmware.
+
+The cache location is determined automatically using Erlang's `:filename.basedir/2` function which follows OS-specific standards.
 
 ## License
 
