@@ -112,24 +112,44 @@ defmodule NervesBurner.DownloaderTest do
       File.write!(test_file, content)
 
       on_exit(fn ->
-        File.rm(test_file)
-        File.rm(test_file <> ".sha256")
+        # Use File.rm instead of File.rm! to avoid errors if file was already removed
+        if File.exists?(test_file), do: File.rm(test_file)
+        if File.exists?(test_file <> ".sha256"), do: File.rm(test_file <> ".sha256")
       end)
 
       {:ok, test_file: test_file, content_size: byte_size(content)}
     end
 
-    test "returns :valid for matching cached file", %{
+    test "returns :valid for matching cached file with hash", %{
       test_file: test_file,
       content_size: size
     } do
+      # Store hash first (simulating a previous download)
+      apply(NervesBurner.Downloader, :store_hash, [test_file])
+
       asset_info = %{url: "http://example.com", name: "test.fw", size: size}
       result = apply(NervesBurner.Downloader, :check_cached_file, [test_file, asset_info])
 
       assert result == :valid
     end
 
-    test "returns :invalid for non-matching cached file", %{test_file: test_file} do
+    test "returns :not_found for cached file without hash and removes it", %{
+      test_file: test_file,
+      content_size: size
+    } do
+      # File exists but no hash file
+      asset_info = %{url: "http://example.com", name: "test.fw", size: size}
+      result = apply(NervesBurner.Downloader, :check_cached_file, [test_file, asset_info])
+
+      assert result == :not_found
+      # Verify the file was removed
+      refute File.exists?(test_file)
+    end
+
+    test "returns :invalid for non-matching cached file with hash", %{test_file: test_file} do
+      # Store hash first
+      apply(NervesBurner.Downloader, :store_hash, [test_file])
+
       asset_info = %{url: "http://example.com", name: "test.fw", size: 999_999}
       result = apply(NervesBurner.Downloader, :check_cached_file, [test_file, asset_info])
 
