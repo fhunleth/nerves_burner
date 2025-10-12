@@ -20,7 +20,8 @@ defmodule NervesBurner.MixProject do
 
   defp deps do
     [
-      {:req, "~> 0.4.0"}
+      {:req, "~> 0.5"},
+      {:progress_bar, "~> 3.0"}
     ]
   end
 

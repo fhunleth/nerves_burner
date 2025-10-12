@@ -9,9 +9,11 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
   - Circuits Quickstart
   - Nerves Livebook
 - Support for multiple platforms:
-  - Raspberry Pi (rpi0, rpi3, rpi4, rpi5)
+  - Raspberry Pi (rpi, rpi0, rpi0_2, rpi2, rpi3, rpi3a, rpi4, rpi5)
   - BeagleBone Black (bbb)
   - OSD32MP1 (osd32mp1)
+  - NPI i.MX6 ULL (npi_imx6ull)
+  - GRiSP 2 (grisp2)
   - MangoPi MQ Pro (mangopi_mq_pro)
 - Automatic firmware download from GitHub releases with progress indication
 - **Intelligent firmware caching** to avoid repeated downloads:
@@ -22,7 +24,46 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
 - Safe device selection with confirmation prompts
 - Optional WiFi credentials configuration (for supported firmware images)
 
+## Installation
+
+### Option 1: Download Pre-built Executable (Recommended)
+
+Download the latest pre-built `nerves_burner` executable from the [Releases](https://github.com/fhunleth/nerves_burner/releases) page:
+
+```bash
+# Download the latest release (replace VERSION with the actual version)
+curl -L -o nerves_burner https://github.com/fhunleth/nerves_burner/releases/download/vVERSION/nerves_burner
+chmod +x nerves_burner
+
+# Run it
+./nerves_burner
+```
+
+You only need **fwup** installed to use the pre-built executable. No Elixir/Erlang installation required!
+
+### Option 2: Build from Source
+
+If you prefer to build from source, see the [Building](#building) section below.
+
 ## Prerequisites
+
+### For Pre-built Executable
+
+1. **fwup**: Install the fwup utility for burning firmware
+   - Installation instructions: https://github.com/fwup-home/fwup#installing
+   - On Ubuntu/Debian: Download the .deb package from releases
+   - On macOS: `brew install fwup`
+   - On Windows: Download the installer from releases
+
+2. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` or `GITHUB_API_TOKEN` environment variable:
+   ```bash
+   export GITHUB_TOKEN=your_github_personal_access_token
+   # or
+   export GITHUB_API_TOKEN=your_github_personal_access_token
+   ```
+   The token only needs public repository read access. Create one at: https://github.com/settings/tokens
+
+### For Building from Source
 
 1. **Elixir and Erlang**: Install Elixir (version 1.14 or later) and Erlang/OTP
    - On Ubuntu/Debian: `sudo apt install erlang elixir`
@@ -101,13 +142,19 @@ Enter your choice (1-2): 1
 
 Select a platform:
 
-  1. rpi0
-  2. rpi3
-  3. rpi4
-  4. rpi5
-  5. bbb
-  6. osd32mp1
-  7. mangopi_mq_pro
+  1. Raspberry Pi Model B (rpi)
+  2. Raspberry Pi Zero (rpi0)
+  3. Raspberry Pi Zero 2W in 64-bit mode (rpi0_2)
+  4. Raspberry Pi 2 (rpi2)
+  5. Raspberry Pi 3 (rpi3)
+  6. Raspberry Pi Zero 2W or 3A in 32-bit mode (rpi3a)
+  7. Raspberry Pi 4 (rpi4)
+  8. Raspberry Pi 5 (rpi5)
+  9. Beaglebone Black and other Beaglebone variants (bbb)
+  10. OSD32MP1 (osd32mp1)
+  11. NPI i.MX6 ULL (npi_imx6ull)
+  12. GRiSP 2 (grisp2)
+  13. MangoPi MQ Pro (mangopi_mq_pro)
 
 Enter your choice (1-7): 4
 

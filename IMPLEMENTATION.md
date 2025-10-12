@@ -16,12 +16,14 @@ The implementation follows the exact flow specified:
    - Implemented in `NervesBurner.CLI.select_firmware_image/0`
 
 2. **Ask user to pick from supported platforms** ✅
-   - rpi0, rpi3, rpi4, rpi5, bbb, osd32mp1, mangopi_mq_pro
-   - Implemented in `NervesBurner.CLI.select_platform/1`
+   - rpi, rpi0, rpi0_2, rpi2, rpi3, rpi3a, rpi4, rpi5, bbb, osd32mp1, npi_imx6ull, grisp2, mangopi_mq_pro
+   - Displays friendly names to users (e.g., "Raspberry Pi Zero (rpi0)")
+   - Implemented in `NervesBurner.CLI.select_platform/1` and `NervesBurner.FirmwareImages.platform_name/1`
 
 3. **Download image from GitHub releases with progress** ✅
    - Downloads from latest release
    - Shows download URL and completion status
+   - Progress indication via Req's built-in http_download
    - Implemented in `NervesBurner.Downloader`
 
 4. **Call fwup to scan for MicroSD cards** ✅
@@ -76,6 +78,7 @@ lib/
 - Centralizes firmware image configurations
 - Defines available platforms for each image
 - Provides asset name patterns for GitHub downloads
+- Maps platform codes to friendly names for user display
 
 ### Downloader Module (`NervesBurner.Downloader`)
 
@@ -149,15 +152,21 @@ Enter your choice (1-2): 1
 
 Select a platform:
 
-  1. rpi0
-  2. rpi3
-  3. rpi4
-  4. rpi5
-  5. bbb
-  6. osd32mp1
-  7. mangopi_mq_pro
+  1. Raspberry Pi Model B (rpi)
+  2. Raspberry Pi Zero (rpi0)
+  3. Raspberry Pi Zero 2W in 64-bit mode (rpi0_2)
+  4. Raspberry Pi 2 (rpi2)
+  5. Raspberry Pi 3 (rpi3)
+  6. Raspberry Pi Zero 2W or 3A in 32-bit mode (rpi3a)
+  7. Raspberry Pi 4 (rpi4)
+  8. Raspberry Pi 5 (rpi5)
+  9. Beaglebone Black and other Beaglebone variants (bbb)
+  10. OSD32MP1 (osd32mp1)
+  11. NPI i.MX6 ULL (npi_imx6ull)
+  12. GRiSP 2 (grisp2)
+  13. MangoPi MQ Pro (mangopi_mq_pro)
 
-Enter your choice (1-7): 4
+Enter your choice (1-13): 8
 
 Downloading firmware...
 Downloading from: https://github.com/.../circuits_quickstart_rpi5.fw
