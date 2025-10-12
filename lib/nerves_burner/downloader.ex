@@ -9,9 +9,10 @@ defmodule NervesBurner.Downloader do
   """
   def download(image_config, platform) do
     fwup_available = NervesBurner.Fwup.available?()
-    
+
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
-         {:ok, asset_url} <- find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available),
+         {:ok, asset_url} <-
+           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available),
          {:ok, firmware_path} <- download_file(asset_url, platform, fwup_available) do
       {:ok, firmware_path}
     end
@@ -71,41 +72,46 @@ defmodule NervesBurner.Downloader do
   defp find_alternative_asset(assets, asset_name) do
     # Get base name without .fw extension
     base_name = String.replace_suffix(asset_name, ".fw", "")
-    
+
     # Try to find zip or img.gz alternatives
     alternative_patterns = [
       "#{base_name}.zip",
       "#{base_name}.img.gz",
       "#{base_name}.img"
     ]
-    
-    result = Enum.find_value(alternative_patterns, fn pattern ->
-      case Enum.find(assets, fn asset -> asset["name"] == pattern end) do
-        %{"browser_download_url" => download_url} -> {:ok, download_url, pattern}
-        nil -> nil
-      end
-    end)
-    
+
+    result =
+      Enum.find_value(alternative_patterns, fn pattern ->
+        case Enum.find(assets, fn asset -> asset["name"] == pattern end) do
+          %{"browser_download_url" => download_url} -> {:ok, download_url, pattern}
+          nil -> nil
+        end
+      end)
+
     case result do
       {:ok, download_url, pattern} ->
-        IO.puts(IO.ANSI.format([
-          :yellow, 
-          "\nNote: fwup is not available. Downloading alternative format: #{pattern}",
-          :reset
-        ]))
+        IO.puts(
+          IO.ANSI.format([
+            :yellow,
+            "\nNote: fwup is not available. Downloading alternative format: #{pattern}",
+            :reset
+          ])
+        )
+
         {:ok, download_url}
-      
+
       nil ->
-        {:error, "No suitable alternative format (zip, img.gz, img) found for '#{asset_name}'. Please install fwup to use .fw files."}
+        {:error,
+         "No suitable alternative format (zip, img.gz, img) found for '#{asset_name}'. Please install fwup to use .fw files."}
     end
   end
 
   defp download_file(url, platform, fwup_available) do
     # Create tmp directory for downloads
     tmp_dir = System.tmp_dir!()
-    
+
     # Determine file extension from URL
-    extension = 
+    extension =
       cond do
         String.ends_with?(url, ".fw") -> ".fw"
         String.ends_with?(url, ".zip") -> ".zip"
@@ -114,7 +120,7 @@ defmodule NervesBurner.Downloader do
         fwup_available -> ".fw"
         true -> ".zip"
       end
-    
+
     filename = "firmware_#{platform}_#{:os.system_time(:millisecond)}#{extension}"
     dest_path = Path.join(tmp_dir, filename)
 

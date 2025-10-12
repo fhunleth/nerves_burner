@@ -354,117 +354,141 @@ defmodule NervesBurner.CLI do
   defp format_size(_), do: ""
 
   defp print_manual_burn_instructions(firmware_path) do
-    IO.puts(IO.ANSI.format([
-      :green, 
-      :bright, 
-      "\n✓ Firmware downloaded successfully!\n", 
-      :reset
-    ]))
-    
-    IO.puts(IO.ANSI.format([
-      :yellow,
-      :bright,
-      "⚠️  Note: fwup is not installed on this system.\n",
-      :reset
-    ]))
-    
-    IO.puts(IO.ANSI.format([
-      :cyan,
-      "File location: ",
-      :reset,
-      :bright,
-      "#{firmware_path}\n",
-      :reset
-    ]))
-    
-    IO.puts(IO.ANSI.format([
-      :cyan,
-      :bright,
-      "\nYou can burn this image to a MicroSD card using:\n",
-      :reset
-    ]))
-    
+    IO.puts(
+      IO.ANSI.format([
+        :green,
+        :bright,
+        "\n✓ Firmware downloaded successfully!\n",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        :yellow,
+        :bright,
+        "⚠️  Note: fwup is not installed on this system.\n",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        :cyan,
+        "File location: ",
+        :reset,
+        :bright,
+        "#{firmware_path}\n",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        :cyan,
+        :bright,
+        "\nYou can burn this image to a MicroSD card using:\n",
+        :reset
+      ])
+    )
+
     # Determine the file type and provide appropriate instructions
     cond do
       String.ends_with?(firmware_path, ".zip") ->
-        IO.puts(IO.ANSI.format([
-          :cyan,
-          "1. Extract the ZIP file to get the .img file\n",
-          "2. Use one of the following tools:\n",
-          :reset
-        ]))
-        
+        IO.puts(
+          IO.ANSI.format([
+            :cyan,
+            "1. Extract the ZIP file to get the .img file\n",
+            "2. Use one of the following tools:\n",
+            :reset
+          ])
+        )
+
       String.ends_with?(firmware_path, ".img.gz") ->
-        IO.puts(IO.ANSI.format([
-          :cyan,
-          "1. Extract the .img.gz file (e.g., gunzip) to get the .img file\n",
-          "2. Use one of the following tools:\n",
-          :reset
-        ]))
-        
+        IO.puts(
+          IO.ANSI.format([
+            :cyan,
+            "1. Extract the .img.gz file (e.g., gunzip) to get the .img file\n",
+            "2. Use one of the following tools:\n",
+            :reset
+          ])
+        )
+
       String.ends_with?(firmware_path, ".img") ->
-        IO.puts(IO.ANSI.format([
-          :cyan,
-          "Use one of the following tools:\n",
-          :reset
-        ]))
-        
+        IO.puts(
+          IO.ANSI.format([
+            :cyan,
+            "Use one of the following tools:\n",
+            :reset
+          ])
+        )
+
       true ->
-        IO.puts(IO.ANSI.format([
-          :cyan,
-          "Use one of the following tools:\n",
-          :reset
-        ]))
+        IO.puts(
+          IO.ANSI.format([
+            :cyan,
+            "Use one of the following tools:\n",
+            :reset
+          ])
+        )
     end
-    
-    IO.puts(IO.ANSI.format([
-      "\n  ",
-      :yellow,
-      "• Etcher",
-      :reset,
-      " (Recommended - Cross-platform GUI tool)\n",
-      "    Download from: ",
-      :bright,
-      "https://etcher.balena.io/\n",
-      :reset
-    ]))
-    
-    IO.puts(IO.ANSI.format([
-      "\n  ",
-      :yellow,
-      "• dd",
-      :reset,
-      " (Linux/macOS command-line tool)\n",
-      "    Example: ",
-      :bright,
-      "sudo dd if=<img-file> of=/dev/sdX bs=4M status=progress\n",
-      :reset,
-      "    ",
-      :red,
-      "⚠️  Warning: Double-check the device path (of=...) to avoid data loss!\n",
-      :reset
-    ]))
-    
-    IO.puts(IO.ANSI.format([
-      "\n  ",
-      :yellow,
-      "• Win32 Disk Imager",
-      :reset,
-      " (Windows)\n",
-      "    Download from: ",
-      :bright,
-      "https://sourceforge.net/projects/win32diskimager/\n",
-      :reset
-    ]))
-    
-    IO.puts(IO.ANSI.format([
-      "\n",
-      :cyan,
-      "For more information about fwup, visit: ",
-      :reset,
-      :bright,
-      "https://github.com/fwup-home/fwup#installing\n",
-      :reset
-    ]))
+
+    IO.puts(
+      IO.ANSI.format([
+        "\n  ",
+        :yellow,
+        "• Etcher",
+        :reset,
+        " (Recommended - Cross-platform GUI tool)\n",
+        "    Download from: ",
+        :bright,
+        "https://etcher.balena.io/\n",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        "\n  ",
+        :yellow,
+        "• dd",
+        :reset,
+        " (Linux/macOS command-line tool)\n",
+        "    Example: ",
+        :bright,
+        "sudo dd if=<img-file> of=/dev/sdX bs=4M status=progress\n",
+        :reset,
+        "    ",
+        :red,
+        "⚠️  Warning: Double-check the device path (of=...) to avoid data loss!\n",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        "\n  ",
+        :yellow,
+        "• Win32 Disk Imager",
+        :reset,
+        " (Windows)\n",
+        "    Download from: ",
+        :bright,
+        "https://sourceforge.net/projects/win32diskimager/\n",
+        :reset
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        "\n",
+        :cyan,
+        "For more information about fwup, visit: ",
+        :reset,
+        :bright,
+        "https://github.com/fwup-home/fwup#installing\n",
+        :reset
+      ])
+    )
   end
 end
