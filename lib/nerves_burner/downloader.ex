@@ -45,10 +45,19 @@ defmodule NervesBurner.Downloader do
         case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
           %{"browser_download_url" => download_url} = asset ->
             # Extract size if available
+            # Look for a corresponding SHA256 checksum file in the assets
+            sha256_asset_name = asset_name <> ".sha256"
+            sha256_url =
+              case Enum.find(assets, fn a -> a["name"] == sha256_asset_name end) do
+                %{"browser_download_url" => url} -> url
+                nil -> nil
+              end
+
             asset_info = %{
               url: download_url,
               name: asset_name,
-              size: asset["size"]
+              size: asset["size"],
+              sha256_url: sha256_url
             }
 
             {:ok, asset_info}
@@ -94,13 +103,29 @@ defmodule NervesBurner.Downloader do
 
     case do_download_with_progress(url, dest_path) do
       :ok ->
-        # Verify the downloaded file (size only, no hash yet)
+        # Verify the downloaded file size
         case verify_size(dest_path, asset_info.size) do
           :ok ->
-            # Store hash for future verification
-            store_hash(dest_path)
-            IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
-            {:ok, dest_path}
+            # Try to download and store hash from GitHub if available
+            case fetch_and_store_hash_from_github(dest_path, asset_info) do
+              :ok ->
+                # Verify the downloaded file against the GitHub hash
+                case verify_hash(dest_path, asset_info) do
+                  :ok ->
+                    IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
+                    {:ok, dest_path}
+
+                  {:error, reason} ->
+                    File.rm(dest_path)
+                    {:error, "Hash verification failed: #{reason}"}
+                end
+
+              {:error, _reason} ->
+                # If GitHub hash not available, compute and store it locally
+                store_hash(dest_path)
+                IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
+                {:ok, dest_path}
+            end
 
           {:error, reason} ->
             File.rm(dest_path)
@@ -240,6 +265,38 @@ defmodule NervesBurner.Downloader do
     hash = compute_sha256(file_path)
     hash_file = file_path <> ".sha256"
     File.write(hash_file, hash)
+  end
+
+  defp fetch_and_store_hash_from_github(file_path, asset_info) do
+    case asset_info.sha256_url do
+      nil ->
+        {:error, :no_hash_available}
+
+      sha256_url ->
+        case Req.get(sha256_url) do
+          {:ok, %{status: 200, body: body}} ->
+            # GitHub checksum files typically contain just the hash or "hash filename"
+            # Extract just the hash (first 64 hex characters)
+            hash =
+              body
+              |> String.trim()
+              |> String.split()
+              |> List.first()
+              |> String.downcase()
+
+            # Verify it's a valid SHA256 hash (64 hex characters)
+            if String.match?(hash, ~r/^[0-9a-f]{64}$/) do
+              hash_file = file_path <> ".sha256"
+              File.write(hash_file, hash)
+              :ok
+            else
+              {:error, :invalid_hash_format}
+            end
+
+          _ ->
+            {:error, :download_failed}
+        end
+    end
   end
 
   # Build headers for GitHub API requests, including auth token if available

@@ -161,7 +161,9 @@ To improve performance and save bandwidth, nerves_burner caches downloaded firmw
 
 Cached files are verified before use by checking:
 1. File size matches the expected size from GitHub
-2. SHA256 hash matches the stored hash from the original download
+2. SHA256 hash matches the expected hash:
+   - If the release includes a `.sha256` checksum file, it's downloaded from GitHub and used for verification
+   - Otherwise, the hash is computed locally after the first download
 
 If a cached file fails verification, it is automatically re-downloaded. This ensures you always get the correct firmware while avoiding unnecessary downloads when burning multiple cards with the same firmware.
 

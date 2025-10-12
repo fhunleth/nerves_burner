@@ -84,6 +84,8 @@ lib/
 - Implements intelligent firmware caching:
   - Stores firmware in OS-appropriate cache directories using `:filename.basedir/2`
   - Verifies cached files using size and SHA256 hash
+  - Downloads SHA256 checksums from GitHub releases when available (`.sha256` files)
+  - Falls back to computing hashes locally if GitHub checksums not provided
   - Automatically re-downloads if verification fails
 - Uses `:req` library with built-in JSON support
 - Computes SHA256 hashes in chunks for memory efficiency
