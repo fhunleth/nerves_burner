@@ -54,7 +54,7 @@
 - `get_latest_release_url/1` - Fetch release info from GitHub API using `:req`
 - `find_asset_url/2` - Locate firmware asset and extract metadata
 - `download_file/2` - Check cache or download to cache directory
-- `get_cache_dir/0` - Determine OS-appropriate cache directory
+- `get_cache_dir/0` - Determine OS-appropriate cache directory using `:filename.basedir/2`
 - `verify_file/2` - Verify cached file size and hash
 - `compute_sha256/1` - Compute SHA256 hash of firmware file
 - `store_hash/1` - Store hash for future verification

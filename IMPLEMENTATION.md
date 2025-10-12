@@ -82,11 +82,12 @@ lib/
 - Fetches latest release from GitHub API
 - Finds appropriate asset for platform
 - Implements intelligent firmware caching:
-  - Stores firmware in OS-appropriate cache directories
+  - Stores firmware in OS-appropriate cache directories using `:filename.basedir/2`
   - Verifies cached files using size and SHA256 hash
   - Automatically re-downloads if verification fails
 - Uses `:req` library with built-in JSON support
 - Computes SHA256 hashes in chunks for memory efficiency
+- Shows download progress with ProgressBar
 
 ### Fwup Module (`NervesBurner.Fwup`)
 

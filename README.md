@@ -153,11 +153,11 @@ You can now safely remove the MicroSD card.
 
 ## Firmware Caching
 
-To improve performance and save bandwidth, nerves_burner caches downloaded firmware files in OS-appropriate cache directories:
+To improve performance and save bandwidth, nerves_burner caches downloaded firmware files in OS-appropriate cache directories following platform conventions:
 
 - **Linux**: `~/.cache/nerves_burner` (respects `$XDG_CACHE_HOME` if set)
 - **macOS**: `~/Library/Caches/nerves_burner`
-- **Windows**: `%LOCALAPPDATA%\nerves_burner\cache`
+- **Windows**: User's local app data cache directory
 
 Cached files are verified before use by checking:
 1. File size matches the expected size from GitHub
@@ -165,17 +165,7 @@ Cached files are verified before use by checking:
 
 If a cached file fails verification, it is automatically re-downloaded. This ensures you always get the correct firmware while avoiding unnecessary downloads when burning multiple cards with the same firmware.
 
-To clear the cache manually:
-```bash
-# Linux
-rm -rf ~/.cache/nerves_burner
-
-# macOS
-rm -rf ~/Library/Caches/nerves_burner
-
-# Windows
-rmdir /s "%LOCALAPPDATA%\nerves_burner\cache"
-```
+The cache location is determined automatically using Erlang's `:filename.basedir/2` function which follows OS-specific standards.
 
 ## License
 

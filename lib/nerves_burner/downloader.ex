@@ -90,16 +90,16 @@ defmodule NervesBurner.Downloader do
     # Ensure cache directory exists
     dest_path |> Path.dirname() |> File.mkdir_p!()
 
-    IO.puts("Downloading from: #{url}")
+    IO.puts(IO.ANSI.format([:cyan, "Downloading from: ", :reset, "#{url}"]))
 
-    case Req.get(url, into: File.stream!(dest_path)) do
-      {:ok, %{status: 200}} ->
+    case do_download_with_progress(url, dest_path) do
+      :ok ->
         # Verify the downloaded file (size only, no hash yet)
         case verify_size(dest_path, asset_info.size) do
           :ok ->
             # Store hash for future verification
             store_hash(dest_path)
-            IO.puts("✓ File saved to: #{dest_path}")
+            IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
             {:ok, dest_path}
 
           {:error, reason} ->
@@ -107,44 +107,63 @@ defmodule NervesBurner.Downloader do
             {:error, "Downloaded file verification failed: #{reason}"}
         end
 
-      {:ok, %{status: status, body: body}} ->
-        error_message = extract_error_message(body, status)
-        {:error, error_message}
-
       {:error, reason} ->
         {:error, "Download failed: #{inspect(reason)}"}
     end
   end
 
-  defp get_cache_dir do
-    case :os.type() do
-      {:unix, :darwin} ->
-        # macOS: ~/Library/Caches/nerves_burner
-        home = System.user_home!()
-        Path.join([home, "Library", "Caches", "nerves_burner"])
+  defp do_download_with_progress(url, path) do
+    # Try to get total size for a proper percentage bar
+    total =
+      case Req.head!(url: url).headers |> Map.get("content-length") do
+        [len | _] -> String.to_integer(len)
+        _ -> 0
+      end
 
-      {:unix, _} ->
-        # Linux: $XDG_CACHE_HOME/nerves_burner or ~/.cache/nerves_burner
-        case System.get_env("XDG_CACHE_HOME") do
-          nil ->
-            home = System.user_home!()
-            Path.join([home, ".cache", "nerves_burner"])
+    {:ok, io} = File.open(path, [:write, :binary])
 
-          cache_home ->
-            Path.join(cache_home, "nerves_burner")
+    # Stream the body; update the bar on each chunk
+    fun = fn
+      {:status, _}, {req, res} ->
+        {:cont, {req, res}}
+
+      {:headers, _}, {req, res} ->
+        {:cont, {req, res}}
+
+      {:data, chunk}, {req, res} ->
+        :ok = IO.binwrite(io, chunk)
+
+        downloaded =
+          (Req.Response.get_private(res, :downloaded) || 0)
+          |> Kernel.+(byte_size(chunk))
+
+        res = Req.Response.put_private(res, :downloaded, downloaded)
+
+        if total > 0 do
+          ProgressBar.render(downloaded, total, suffix: :bytes)
         end
 
-      {:win32, _} ->
-        # Windows: %LOCALAPPDATA%\nerves_burner\cache
-        case System.get_env("LOCALAPPDATA") do
-          nil ->
-            home = System.user_home!()
-            Path.join([home, "AppData", "Local", "nerves_burner", "cache"])
-
-          local_app_data ->
-            Path.join([local_app_data, "nerves_burner", "cache"])
-        end
+        {:cont, {req, res}}
     end
+
+    if total > 0 do
+      Req.get!(url: url, raw: true, into: fun)
+    else
+      # No Content-Length? Show an indeterminate animation while downloading.
+      ProgressBar.render_indeterminate([text: "Downloading…"], fn ->
+        Req.get!(url: url, raw: true, into: fun)
+      end)
+    end
+
+    File.close(io)
+    :ok
+  rescue
+    reason -> {:error, reason}
+  end
+
+  defp get_cache_dir do
+    :filename.basedir(:user_cache, ~c"nerves_burner")
+    |> List.to_string()
   end
 
   defp check_cached_file(cache_path, asset_info) do
