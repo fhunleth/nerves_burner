@@ -20,6 +20,7 @@ defmodule NervesBurner.FirmwareImagesTest do
         assert Map.has_key?(config, :platforms)
         assert Map.has_key?(config, :asset_pattern)
         assert Map.has_key?(config, :description)
+        assert Map.has_key?(config, :long_description)
         assert Map.has_key?(config, :url)
       end)
     end
@@ -81,6 +82,8 @@ defmodule NervesBurner.FirmwareImagesTest do
       Enum.each(images, fn {_name, config} ->
         assert is_binary(config.description)
         assert String.length(config.description) > 0
+        assert is_binary(config.long_description)
+        assert String.length(config.long_description) > 0
         assert is_binary(config.url)
         assert String.starts_with?(config.url, "https://")
       end)
@@ -90,7 +93,8 @@ defmodule NervesBurner.FirmwareImagesTest do
       images = NervesBurner.FirmwareImages.list()
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
 
-      assert config.description =~ ~r/GPIO|I2C|SPI|hardware/i
+      assert config.description =~ ~r/GPIO|I2C|SPI/i
+      assert config.long_description =~ ~r/GPIO|I2C|SPI/i
       assert config.url == "https://github.com/elixir-circuits/circuits_quickstart"
     end
 
@@ -99,6 +103,7 @@ defmodule NervesBurner.FirmwareImagesTest do
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Nerves Livebook" end)
 
       assert config.description =~ ~r/notebook|learning|Elixir|Nerves/i
+      assert config.long_description =~ ~r/Livebook|interactive/i
       assert config.url == "https://github.com/nerves-livebook/nerves_livebook"
     end
   end

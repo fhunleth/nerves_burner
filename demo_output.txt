@@ -3,13 +3,12 @@
 Select a firmware image:
 
   1. Circuits Quickstart
-     Simple examples for GPIO, I2C, SPI and more - perfect for hardware experimentation
-     https://github.com/elixir-circuits/circuits_quickstart
+     Simple examples for GPIO, I2C, SPI and more
   2. Nerves Livebook
-     Interactive notebooks for learning Elixir and Nerves on embedded devices
-     https://github.com/nerves-livebook/nerves_livebook
+     Interactive notebooks for learning Elixir and Nerves
+  ? Learn more about a firmware image
 
-Enter your choice (1-2): 1
+Enter your choice (1-2 or ?): 1
 
 Select a platform:
 
