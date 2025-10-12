@@ -132,9 +132,12 @@ The script will guide you through:
 Select a firmware image:
 
   1. Circuits Quickstart
+     Simple examples for GPIO, I2C, SPI and more
   2. Nerves Livebook
+     Interactive notebooks for learning Elixir and Nerves
+  ? Learn more about a firmware image
 
-Enter your choice (1-2): 1
+Enter your choice (1-2 or ?): 1
 
 Select a platform:
 

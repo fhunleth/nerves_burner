@@ -47,21 +47,60 @@ defmodule NervesBurner.CLI do
 
     images
     |> Enum.with_index(1)
-    |> Enum.each(fn {{name, _config}, index} ->
-      IO.puts(IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " #{name}"]))
+    |> Enum.each(fn {{name, config}, index} ->
+      IO.puts(
+        IO.ANSI.format(["  ", :yellow, "#{index}.", :reset, " ", :bright, "#{name}", :reset])
+      )
+
+      if Map.has_key?(config, :description) do
+        IO.puts(IO.ANSI.format(["     ", :faint, "#{config.description}", :reset]))
+      end
     end)
 
-    case get_user_choice(
-           IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(images)}): ", :reset]),
-           1..length(images)
-         ) do
-      {:ok, choice} ->
-        {_name, config} = Enum.at(images, choice - 1)
-        {:ok, config}
+    IO.puts(IO.ANSI.format(["  ", :yellow, "?", :reset, " Learn more about a firmware image"]))
 
-      error ->
-        error
+    prompt =
+      IO.ANSI.format(["\n", :green, "Enter your choice (1-#{length(images)} or ?): ", :reset])
+
+    case get_user_input(prompt) do
+      "" ->
+        {:error, :cancelled}
+
+      "?" ->
+        show_firmware_details(images)
+        select_firmware_image()
+
+      input ->
+        case Integer.parse(input) do
+          {num, _} when num >= 1 and num <= length(images) ->
+            {_name, config} = Enum.at(images, num - 1)
+            {:ok, config}
+
+          _ ->
+            IO.puts(IO.ANSI.format([:red, "Invalid choice. Please try again.", :reset]))
+            select_firmware_image()
+        end
     end
+  end
+
+  defp show_firmware_details(images) do
+    IO.puts(IO.ANSI.format(["\n", :cyan, :bright, "Firmware Details:", :reset, "\n"]))
+
+    images
+    |> Enum.with_index(1)
+    |> Enum.each(fn {{name, config}, index} ->
+      IO.puts(IO.ANSI.format(["\n", :yellow, "#{index}. ", :bright, "#{name}", :reset]))
+
+      if Map.has_key?(config, :long_description) do
+        IO.puts(IO.ANSI.format(["   ", :faint, String.trim(config.long_description), :reset]))
+      end
+
+      if Map.has_key?(config, :url) do
+        IO.puts(IO.ANSI.format(["\n   ", :cyan, "More info: #{config.url}", :reset]))
+      end
+    end)
+
+    IO.puts("\n")
   end
 
   defp select_platform(image_config) do
