@@ -230,12 +230,14 @@ defmodule NervesBurner.Downloader do
     reason -> {:error, reason}
   end
 
-  defp get_cache_dir do
+  @doc false
+  def get_cache_dir do
     :filename.basedir(:user_cache, ~c"nerves_burner")
     |> List.to_string()
   end
 
-  defp check_cached_file(cache_path, asset_info) do
+  @doc false
+  def check_cached_file(cache_path, asset_info) do
     if File.exists?(cache_path) do
       hash_file = cache_path <> ".sha256"
 
@@ -255,7 +257,8 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp verify_file(file_path, asset_info) do
+  @doc false
+  def verify_file(file_path, asset_info) do
     # Verify file size if available
     with :ok <- verify_size(file_path, asset_info.size),
          :ok <- verify_hash(file_path, asset_info) do
@@ -305,7 +308,8 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp compute_sha256(file_path) do
+  @doc false
+  def compute_sha256(file_path) do
     file_path
     |> File.stream!([], 2048)
     |> Enum.reduce(:crypto.hash_init(:sha256), fn chunk, acc ->
@@ -315,7 +319,8 @@ defmodule NervesBurner.Downloader do
     |> Base.encode16(case: :lower)
   end
 
-  defp store_hash(file_path) do
+  @doc false
+  def store_hash(file_path) do
     hash = compute_sha256(file_path)
     hash_file = file_path <> ".sha256"
     File.write(hash_file, hash)
