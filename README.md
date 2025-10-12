@@ -16,7 +16,9 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
   - GRiSP 2 (grisp2)
   - MangoPi MQ Pro (mangopi_mq_pro)
 - Automatic firmware download from GitHub releases with progress indication
-- Automatic MicroSD card detection via fwup
+- **Smart fallback mode**: Works with or without fwup
+  - With fwup: Automatic MicroSD card detection and burning
+  - Without fwup: Downloads alternative formats and provides manual burning instructions
 - Safe device selection with confirmation prompts
 - Optional WiFi credentials configuration (for supported firmware images)
 
@@ -45,11 +47,12 @@ If you prefer to build from source, see the [Building](#building) section below.
 
 ### For Pre-built Executable
 
-1. **fwup**: Install the fwup utility for burning firmware
+1. **fwup** (Optional but recommended): Install the fwup utility for automatic firmware burning
    - Installation instructions: https://github.com/fwup-home/fwup#installing
    - On Ubuntu/Debian: Download the .deb package from releases
    - On macOS: `brew install fwup`
    - On Windows: Download the installer from releases
+   - **Note**: If fwup is not installed, the tool will download alternative firmware formats (zip/img.gz) and provide instructions for manual burning using tools like Etcher or dd.
 
 2. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` or `GITHUB_API_TOKEN` environment variable:
    ```bash
@@ -116,6 +119,8 @@ Simply run the executable:
 
 The script will guide you through:
 
+### With fwup installed (recommended):
+
 1. **Firmware Selection**: Choose from available firmware images
 2. **Platform Selection**: Select your target hardware platform
 3. **WiFi Configuration** (Optional): Set WiFi SSID and passphrase for supported firmware
@@ -123,6 +128,16 @@ The script will guide you through:
 5. **Device Selection**: Select the MicroSD card to burn (with rescan option)
 6. **Confirmation**: Confirm the operation (requires typing "yes")
 7. **Burning**: The firmware is written to the card with progress indication
+
+### Without fwup:
+
+1. **Firmware Selection**: Choose from available firmware images
+2. **Platform Selection**: Select your target hardware platform
+3. **Download**: An alternative firmware format (zip or img.gz) will be downloaded
+4. **Instructions**: The tool will display the downloaded file path and provide instructions for manual burning using:
+   - **Etcher** (recommended - cross-platform GUI tool)
+   - **dd** (Linux/macOS command-line)
+   - **Win32 Disk Imager** (Windows)
 
 ## Example Session
 
@@ -193,6 +208,19 @@ You can now safely remove the MicroSD card.
 - Shows device size to help identify the correct device
 - Provides option to rescan devices
 - Clear warnings about data loss
+
+## Fallback Mode (Without fwup)
+
+If fwup is not installed on your system, Nerves Burner will automatically:
+
+1. Download an alternative firmware format (zip or img.gz instead of .fw)
+2. Display the downloaded file location
+3. Provide detailed instructions for burning the image manually using popular tools:
+   - **Etcher** - User-friendly cross-platform GUI tool (recommended for beginners)
+   - **dd** - Command-line tool for Linux/macOS users
+   - **Win32 Disk Imager** - GUI tool for Windows users
+
+This fallback mode ensures you can still download and prepare firmware even if fwup is not available on your system.
 
 ## License
 
