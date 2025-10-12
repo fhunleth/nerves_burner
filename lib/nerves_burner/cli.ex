@@ -6,25 +6,48 @@ defmodule NervesBurner.CLI do
   def main(_args) do
     print_banner()
 
-    with {:ok, image_config} <- select_firmware_image(),
-         {:ok, platform} <- select_platform(image_config),
-         {:ok, wifi_config} <- get_wifi_credentials(),
-         {:ok, firmware_path} <- download_firmware(image_config, platform),
-         {:ok, device} <- select_device(),
-         :ok <- burn_firmware(firmware_path, device, wifi_config) do
-      IO.puts(IO.ANSI.format([:green, :bright, "\n✓ Firmware burned successfully!\n", :reset]))
-      IO.puts(IO.ANSI.format([:cyan, "You can now safely remove the MicroSD card.\n", :reset]))
+    fwup_available = NervesBurner.Fwup.available?()
+
+    if fwup_available do
+      # Full workflow with fwup
+      with {:ok, image_config} <- select_firmware_image(),
+           {:ok, platform} <- select_platform(image_config),
+           {:ok, wifi_config} <- get_wifi_credentials(),
+           {:ok, firmware_path} <- download_firmware(image_config, platform),
+           {:ok, device} <- select_device(),
+           :ok <- burn_firmware(firmware_path, device, wifi_config) do
+        IO.puts(IO.ANSI.format([:green, :bright, "\n✓ Firmware burned successfully!\n", :reset]))
+        IO.puts(IO.ANSI.format([:cyan, "You can now safely remove the MicroSD card.\n", :reset]))
+      else
+        {:error, :cancelled} ->
+          IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
+          System.halt(0)
+
+        {:error, reason} ->
+          IO.puts(
+            IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset])
+          )
+
+          System.halt(1)
+      end
     else
-      {:error, :cancelled} ->
-        IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
-        System.halt(0)
+      # Download-only workflow without fwup
+      with {:ok, image_config} <- select_firmware_image(),
+           {:ok, platform} <- select_platform(image_config),
+           {:ok, firmware_path} <- download_firmware(image_config, platform) do
+        print_manual_burn_instructions(firmware_path)
+      else
+        {:error, :cancelled} ->
+          IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
+          System.halt(0)
 
-      {:error, reason} ->
-        IO.puts(
-          IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset])
-        )
+        {:error, reason} ->
+          IO.puts(
+            IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset])
+          )
 
-        System.halt(1)
+          System.halt(1)
+      end
     end
   end
 
@@ -329,4 +352,119 @@ defmodule NervesBurner.CLI do
   end
 
   defp format_size(_), do: ""
+
+  defp print_manual_burn_instructions(firmware_path) do
+    IO.puts(IO.ANSI.format([
+      :green, 
+      :bright, 
+      "\n✓ Firmware downloaded successfully!\n", 
+      :reset
+    ]))
+    
+    IO.puts(IO.ANSI.format([
+      :yellow,
+      :bright,
+      "⚠️  Note: fwup is not installed on this system.\n",
+      :reset
+    ]))
+    
+    IO.puts(IO.ANSI.format([
+      :cyan,
+      "File location: ",
+      :reset,
+      :bright,
+      "#{firmware_path}\n",
+      :reset
+    ]))
+    
+    IO.puts(IO.ANSI.format([
+      :cyan,
+      :bright,
+      "\nYou can burn this image to a MicroSD card using:\n",
+      :reset
+    ]))
+    
+    # Determine the file type and provide appropriate instructions
+    cond do
+      String.ends_with?(firmware_path, ".zip") ->
+        IO.puts(IO.ANSI.format([
+          :cyan,
+          "1. Extract the ZIP file to get the .img file\n",
+          "2. Use one of the following tools:\n",
+          :reset
+        ]))
+        
+      String.ends_with?(firmware_path, ".img.gz") ->
+        IO.puts(IO.ANSI.format([
+          :cyan,
+          "1. Extract the .img.gz file (e.g., gunzip) to get the .img file\n",
+          "2. Use one of the following tools:\n",
+          :reset
+        ]))
+        
+      String.ends_with?(firmware_path, ".img") ->
+        IO.puts(IO.ANSI.format([
+          :cyan,
+          "Use one of the following tools:\n",
+          :reset
+        ]))
+        
+      true ->
+        IO.puts(IO.ANSI.format([
+          :cyan,
+          "Use one of the following tools:\n",
+          :reset
+        ]))
+    end
+    
+    IO.puts(IO.ANSI.format([
+      "\n  ",
+      :yellow,
+      "• Etcher",
+      :reset,
+      " (Recommended - Cross-platform GUI tool)\n",
+      "    Download from: ",
+      :bright,
+      "https://etcher.balena.io/\n",
+      :reset
+    ]))
+    
+    IO.puts(IO.ANSI.format([
+      "\n  ",
+      :yellow,
+      "• dd",
+      :reset,
+      " (Linux/macOS command-line tool)\n",
+      "    Example: ",
+      :bright,
+      "sudo dd if=<img-file> of=/dev/sdX bs=4M status=progress\n",
+      :reset,
+      "    ",
+      :red,
+      "⚠️  Warning: Double-check the device path (of=...) to avoid data loss!\n",
+      :reset
+    ]))
+    
+    IO.puts(IO.ANSI.format([
+      "\n  ",
+      :yellow,
+      "• Win32 Disk Imager",
+      :reset,
+      " (Windows)\n",
+      "    Download from: ",
+      :bright,
+      "https://sourceforge.net/projects/win32diskimager/\n",
+      :reset
+    ]))
+    
+    IO.puts(IO.ANSI.format([
+      "\n",
+      :cyan,
+      "For more information about fwup, visit: ",
+      :reset,
+      :bright,
+      "https://github.com/fwup-home/fwup#installing\n",
+      :reset
+    ]))
+  end
 end

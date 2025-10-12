@@ -6,6 +6,18 @@ defmodule NervesBurner.Fwup do
   alias NervesBurner.InteractiveShell
 
   @doc """
+  Checks if fwup is available on the system.
+  """
+  def available? do
+    case System.cmd("fwup", ["--version"], stderr_to_stdout: true) do
+      {_, 0} -> true
+      _ -> false
+    end
+  rescue
+    ErlangError -> false
+  end
+
+  @doc """
   Scans for available devices (MicroSD cards).
   """
   def scan_devices do
