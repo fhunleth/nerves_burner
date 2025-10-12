@@ -132,7 +132,11 @@ The script will guide you through:
 Select a firmware image:
 
   1. Circuits Quickstart
+     Simple examples for GPIO, I2C, SPI and more - perfect for hardware experimentation
+     https://github.com/elixir-circuits/circuits_quickstart
   2. Nerves Livebook
+     Interactive notebooks for learning Elixir and Nerves on embedded devices
+     https://github.com/nerves-livebook/nerves_livebook
 
 Enter your choice (1-2): 1
 
