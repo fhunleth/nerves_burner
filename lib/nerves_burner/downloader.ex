@@ -111,6 +111,7 @@ defmodule NervesBurner.Downloader do
                 # Verify the downloaded file against the GitHub hash
                 case verify_hash(dest_path, asset_info) do
                   :ok ->
+                    IO.puts(IO.ANSI.format([:green, "✓ Hash verified from SHA256SUMS", :reset]))
                     IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
                     {:ok, dest_path}
 
@@ -119,11 +120,48 @@ defmodule NervesBurner.Downloader do
                     {:error, "Hash verification failed: #{reason}"}
                 end
 
-              {:error, _reason} ->
-                # If GitHub hash not available, compute and store it locally
-                store_hash(dest_path)
-                IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
-                {:ok, dest_path}
+              {:error, reason} ->
+                # If GitHub hash not available, ask user for confirmation
+                IO.puts("")
+                IO.puts(
+                  IO.ANSI.format([
+                    :yellow,
+                    "⚠ Warning: SHA256SUMS file not available (#{inspect(reason)})",
+                    :reset
+                  ])
+                )
+
+                IO.puts("Hash cannot be verified from the release.")
+                IO.puts("A local hash will be computed and saved for future verification.")
+                IO.write("Continue with download? (yes/no): ")
+
+                case IO.gets("") |> String.trim() |> String.downcase() do
+                  answer when answer in ["yes", "y"] ->
+                    # Compute and store hash locally
+                    case compute_and_store_hash(dest_path) do
+                      :ok ->
+                        IO.puts(IO.ANSI.format([:green, "✓ Local hash computed and saved", :reset]))
+                        IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
+                        {:ok, dest_path}
+
+                      {:error, hash_error} ->
+                        IO.puts(
+                          IO.ANSI.format([
+                            :yellow,
+                            "⚠ Warning: Failed to compute hash: #{inspect(hash_error)}",
+                            :reset
+                          ])
+                        )
+
+                        IO.puts("Starting new download...")
+                        File.rm(dest_path)
+                        do_download(url, dest_path, asset_info)
+                    end
+
+                  _ ->
+                    File.rm(dest_path)
+                    {:error, "Download cancelled by user"}
+                end
             end
 
           {:error, reason} ->
@@ -192,9 +230,18 @@ defmodule NervesBurner.Downloader do
 
   defp check_cached_file(cache_path, asset_info) do
     if File.exists?(cache_path) do
-      case verify_file(cache_path, asset_info) do
-        :ok -> :valid
-        {:error, _} -> :invalid
+      hash_file = cache_path <> ".sha256"
+
+      # If there's no local hash, treat as failed download and redownload
+      if not File.exists?(hash_file) do
+        IO.puts("Cached firmware has no hash file, removing and re-downloading...")
+        File.rm(cache_path)
+        :not_found
+      else
+        case verify_file(cache_path, asset_info) do
+          :ok -> :valid
+          {:error, _} -> :invalid
+        end
       end
     else
       :not_found
@@ -235,6 +282,7 @@ defmodule NervesBurner.Downloader do
           computed_hash = compute_sha256(file_path)
 
           if String.trim(stored_hash) == computed_hash do
+            IO.puts("✓ Hash verified")
             :ok
           else
             {:error, "Hash mismatch"}
@@ -264,6 +312,18 @@ defmodule NervesBurner.Downloader do
     hash = compute_sha256(file_path)
     hash_file = file_path <> ".sha256"
     File.write(hash_file, hash)
+  end
+
+  defp compute_and_store_hash(file_path) do
+    try do
+      hash = compute_sha256(file_path)
+      hash_file = file_path <> ".sha256"
+      File.write(hash_file, hash)
+      :ok
+    rescue
+      error ->
+        {:error, error}
+    end
   end
 
   defp fetch_and_store_hash_from_github(file_path, asset_info) do
