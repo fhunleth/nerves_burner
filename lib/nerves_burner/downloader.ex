@@ -123,6 +123,7 @@ defmodule NervesBurner.Downloader do
               {:error, reason} ->
                 # If GitHub hash not available, ask user for confirmation
                 IO.puts("")
+
                 IO.puts(
                   IO.ANSI.format([
                     :yellow,
@@ -140,8 +141,14 @@ defmodule NervesBurner.Downloader do
                     # Compute and store hash locally
                     case compute_and_store_hash(dest_path) do
                       :ok ->
-                        IO.puts(IO.ANSI.format([:green, "✓ Local hash computed and saved", :reset]))
-                        IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
+                        IO.puts(
+                          IO.ANSI.format([:green, "✓ Local hash computed and saved", :reset])
+                        )
+
+                        IO.puts(
+                          IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"])
+                        )
+
                         {:ok, dest_path}
 
                       {:error, hash_error} ->
