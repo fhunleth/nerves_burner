@@ -11,6 +11,17 @@ defmodule NervesBurner.FirmwareImages do
       {"Circuits Quickstart",
        %{
          repo: "elixir-circuits/circuits_quickstart",
+         description: "Simple examples for GPIO, I2C, SPI and more",
+         long_description: """
+         A collection of ready-to-run examples demonstrating how to use Elixir Circuits libraries for hardware interaction. Perfect for learning and experimentation with:
+         - GPIO (General Purpose Input/Output) pins
+         - I2C communication with sensors and peripherals
+         - SPI (Serial Peripheral Interface) devices
+         - PWM (Pulse Width Modulation) for controlling LEDs and motors
+
+         Great starting point for anyone new to hardware programming with Nerves.
+         """,
+         url: "https://github.com/elixir-circuits/circuits_quickstart",
          platforms: [
            "rpi",
            "rpi0",
@@ -31,6 +42,18 @@ defmodule NervesBurner.FirmwareImages do
       {"Nerves Livebook",
        %{
          repo: "nerves-livebook/nerves_livebook",
+         description: "Interactive notebooks for learning Elixir and Nerves",
+         long_description: """
+         Run Livebook directly on your embedded device for an interactive development and learning experience. Features include:
+         - Pre-installed notebooks with Nerves examples and tutorials
+         - Interactive code execution and visualization
+         - Built-in documentation and learning resources
+         - WiFi configuration support for easy network access
+         - Explore hardware capabilities through live coding
+
+         Ideal for learning Elixir, experimenting with Nerves, or building prototypes interactively.
+         """,
+         url: "https://github.com/nerves-livebook/nerves_livebook",
          platforms: [
            "rpi",
            "rpi0",
