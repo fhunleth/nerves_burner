@@ -1,6 +1,13 @@
 defmodule NervesBurner.FwupTest do
   use ExUnit.Case
 
+  describe "available?/0" do
+    test "returns boolean value" do
+      result = NervesBurner.Fwup.available?()
+      assert is_boolean(result)
+    end
+  end
+
   describe "scan_devices/0" do
     test "returns ok tuple with list" do
       case NervesBurner.Fwup.scan_devices() do
