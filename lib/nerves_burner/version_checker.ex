@@ -6,7 +6,6 @@ defmodule NervesBurner.VersionChecker do
   alias NervesBurner.Output
 
   @repo "fhunleth/nerves_burner"
-  @current_version "0.1.0"
 
   @doc """
   Checks if a new version is available on GitHub and prompts user to download it.
@@ -35,9 +34,9 @@ defmodule NervesBurner.VersionChecker do
         case body do
           %{"tag_name" => tag_name, "assets" => assets} ->
             new_version = normalize_version(tag_name)
-            current_version = normalize_version(@current_version)
+            curr_version = normalize_version(current_version())
 
-            case Version.compare(new_version, current_version) do
+            case Version.compare(new_version, curr_version) do
               :gt ->
                 # Find the nerves_burner executable in assets
                 case find_executable_asset(assets) do
@@ -86,7 +85,7 @@ defmodule NervesBurner.VersionChecker do
   defp prompt_and_download_update(new_version, download_url) do
     IO.puts("")
     Output.info("🎉 A new version of nerves_burner is available: #{new_version}")
-    Output.info("Current version: #{@current_version}")
+    Output.info("Current version: #{current_version()}")
     IO.puts("")
 
     case get_user_input("Would you like to download the new version? (y/n): ") do
@@ -167,6 +166,13 @@ defmodule NervesBurner.VersionChecker do
     |> String.trim()
     |> String.trim_leading("v")
     |> String.trim_leading("V")
+  end
+
+  # Get the current version from the application spec
+  defp current_version do
+    :nerves_burner
+    |> Application.spec(:vsn)
+    |> to_string()
   end
 
   # Build headers for GitHub API requests, including auth token if available
