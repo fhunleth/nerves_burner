@@ -96,11 +96,20 @@ defmodule NervesBurner.Downloader do
     base_name = String.replace_suffix(asset_name, ".fw", "")
 
     # Try to find zip or img.gz alternatives
-    alternative_patterns = [
-      "#{base_name}.zip",
-      "#{base_name}.img.gz",
-      "#{base_name}.img"
-    ]
+    # For GRiSP2, prioritize img.gz format
+    alternative_patterns = if platform == "grisp2" do
+      [
+        "#{base_name}.img.gz",
+        "#{base_name}.img",
+        "#{base_name}.zip"
+      ]
+    else
+      [
+        "#{base_name}.zip",
+        "#{base_name}.img.gz",
+        "#{base_name}.img"
+      ]
+    end
 
     result =
       Enum.find_value(alternative_patterns, fn pattern ->
