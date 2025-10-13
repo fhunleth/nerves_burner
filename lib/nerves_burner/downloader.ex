@@ -3,6 +3,8 @@ defmodule NervesBurner.Downloader do
   Handles downloading firmware from GitHub releases.
   """
 
+  alias NervesBurner.Output
+
   @doc """
   Downloads firmware for the specified image config and platform.
   If fwup is available, downloads .fw file. Otherwise, downloads alternative format (zip or img.gz).
@@ -107,12 +109,8 @@ defmodule NervesBurner.Downloader do
 
     case result do
       {:ok, download_url, pattern, size} ->
-        IO.puts(
-          IO.ANSI.format([
-            :yellow,
-            "\nNote: fwup is not available. Downloading alternative format: #{pattern}",
-            :reset
-          ])
+        Output.warning(
+          "\nNote: fwup is not available. Downloading alternative format: #{pattern}"
         )
 
         asset_info = %{
@@ -154,7 +152,7 @@ defmodule NervesBurner.Downloader do
     # Ensure cache directory exists
     dest_path |> Path.dirname() |> File.mkdir_p!()
 
-    IO.puts(IO.ANSI.format([:cyan, "Downloading from: ", :reset, "#{url}"]))
+    Output.labeled("Downloading from: ", "#{url}")
 
     case do_download_with_progress(url, dest_path) do
       :ok ->
@@ -167,8 +165,8 @@ defmodule NervesBurner.Downloader do
                 # Verify the downloaded file against the GitHub hash
                 case verify_hash(dest_path, asset_info) do
                   :ok ->
-                    IO.puts(IO.ANSI.format([:green, "✓ Hash verified from SHA256SUMS", :reset]))
-                    IO.puts(IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"]))
+                    Output.success("✓ Hash verified from SHA256SUMS")
+                    Output.labeled("✓ File saved to: ", "#{dest_path}", :green)
                     {:ok, dest_path}
 
                   {:error, reason} ->
@@ -179,14 +177,7 @@ defmodule NervesBurner.Downloader do
               {:error, reason} ->
                 # If GitHub hash not available, ask user for confirmation
                 IO.puts("")
-
-                IO.puts(
-                  IO.ANSI.format([
-                    :yellow,
-                    "⚠ Warning: SHA256SUMS file not available (#{inspect(reason)})",
-                    :reset
-                  ])
-                )
+                Output.warning("⚠ Warning: SHA256SUMS file not available (#{inspect(reason)})")
 
                 IO.puts("Hash cannot be verified from the release.")
                 IO.puts("A local hash will be computed and saved for future verification.")
@@ -197,23 +188,13 @@ defmodule NervesBurner.Downloader do
                     # Compute and store hash locally
                     case compute_and_store_hash(dest_path) do
                       :ok ->
-                        IO.puts(
-                          IO.ANSI.format([:green, "✓ Local hash computed and saved", :reset])
-                        )
-
-                        IO.puts(
-                          IO.ANSI.format([:green, "✓ File saved to: ", :reset, "#{dest_path}"])
-                        )
-
+                        Output.success("✓ Local hash computed and saved")
+                        Output.labeled("✓ File saved to: ", "#{dest_path}", :green)
                         {:ok, dest_path}
 
                       {:error, hash_error} ->
-                        IO.puts(
-                          IO.ANSI.format([
-                            :yellow,
-                            "⚠ Warning: Failed to compute hash: #{inspect(hash_error)}",
-                            :reset
-                          ])
+                        Output.warning(
+                          "⚠ Warning: Failed to compute hash: #{inspect(hash_error)}"
                         )
 
                         IO.puts("Starting new download...")
