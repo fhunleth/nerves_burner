@@ -75,9 +75,7 @@ defmodule NervesBurner.CLI do
 
     Output.menu_option("?", "Learn more about a firmware image")
 
-    prompt = Output.prompt("\nEnter your choice (1-#{length(images)} or ?): ")
-
-    case get_user_input(prompt) do
+    case get_user_input("\nEnter your choice (1-#{length(images)} or ?): ") do
       "" ->
         {:error, :cancelled}
 
@@ -131,7 +129,7 @@ defmodule NervesBurner.CLI do
     end)
 
     case get_user_choice(
-           Output.prompt("\nEnter your choice (1-#{length(platforms)}): "),
+           "\nEnter your choice (1-#{length(platforms)}): ",
            1..length(platforms)
          ) do
       {:ok, choice} ->
@@ -146,7 +144,7 @@ defmodule NervesBurner.CLI do
     Output.section("\nWould you like to configure WiFi credentials?")
     Output.info("(This is supported by Circuits Quickstart and Nerves Livebook firmware)\n")
 
-    case get_user_input(Output.prompt("Configure WiFi? (y/n): ")) do
+    case get_user_input("Configure WiFi? (y/n): ") do
       input when input in ["y", "Y", "yes", "Yes", "YES"] ->
         get_wifi_details()
 
@@ -156,13 +154,13 @@ defmodule NervesBurner.CLI do
   end
 
   defp get_wifi_details do
-    ssid = get_user_input(Output.prompt("\nEnter WiFi SSID: "))
+    ssid = get_user_input("\nEnter WiFi SSID: ")
 
     if ssid == "" do
       Output.warning("WiFi SSID cannot be empty. Skipping WiFi configuration.")
       {:ok, %{}}
     else
-      passphrase = get_user_input(Output.prompt("Enter WiFi passphrase: "))
+      passphrase = get_user_input("Enter WiFi passphrase: ")
 
       if passphrase == "" do
         Output.warning("WiFi passphrase cannot be empty. Skipping WiFi configuration.")
@@ -194,7 +192,7 @@ defmodule NervesBurner.CLI do
       {:ok, []} ->
         Output.warning("\nNo MicroSD cards detected.")
 
-        case get_user_input(Output.prompt("\nWould you like to rescan? (y/n): ")) do
+        case get_user_input("\nWould you like to rescan? (y/n): ") do
           input when input in ["y", "Y", "yes", "Yes"] ->
             select_device()
 
@@ -232,7 +230,7 @@ defmodule NervesBurner.CLI do
     Output.menu_option(length(devices) + 1, "Rescan")
 
     case get_user_choice(
-           Output.prompt("\nEnter your choice (1-#{length(devices) + 1}): "),
+           "\nEnter your choice (1-#{length(devices) + 1}): ",
            1..(length(devices) + 1)
          ) do
       {:ok, choice} when choice == length(devices) + 1 ->
@@ -250,9 +248,7 @@ defmodule NervesBurner.CLI do
   defp confirm_device(device) do
     Output.critical_warning("All data on #{device.path} will be erased!")
 
-    case get_user_input(
-           IO.ANSI.format([:yellow, "Are you sure you want to continue? (yes/no): ", :reset])
-         ) do
+    case get_user_input("Are you sure you want to continue? (yes/no): ") do
       input when input in ["yes", "Yes", "YES"] ->
         {:ok, device.path}
 
@@ -303,7 +299,9 @@ defmodule NervesBurner.CLI do
   end
 
   defp get_user_input(prompt) do
-    IO.gets(prompt)
+    formatted_prompt = Output.prompt(prompt)
+
+    IO.gets(formatted_prompt)
     |> to_string()
     |> String.trim()
   end
