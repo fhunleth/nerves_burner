@@ -5,10 +5,14 @@ defmodule NervesBurner.Downloader do
 
   @doc """
   Downloads firmware for the specified image config and platform.
+  If fwup is available, downloads .fw file. Otherwise, downloads alternative format (zip or img.gz).
   """
   def download(image_config, platform) do
+    fwup_available = NervesBurner.Fwup.available?()
+
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
-         {:ok, asset_info} <- find_asset_url(release_url, image_config.asset_pattern.(platform)),
+         {:ok, asset_info} <-
+           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available),
          {:ok, firmware_path} <- download_file(asset_info, platform) do
       {:ok, firmware_path}
     end
@@ -39,30 +43,35 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_asset_url(assets_url, asset_name) do
+  defp find_asset_url(assets_url, asset_name, fwup_available) do
     case Req.get(assets_url, headers: github_headers()) do
       {:ok, %{status: 200, body: assets}} when is_list(assets) ->
-        case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
-          %{"browser_download_url" => download_url} = asset ->
-            # Extract size if available
-            # Look for SHA256SUMS file in the assets
-            sha256sums_url =
-              case Enum.find(assets, fn a -> a["name"] == "SHA256SUMS" end) do
-                %{"browser_download_url" => url} -> url
-                nil -> nil
-              end
+        # Look for SHA256SUMS file in the assets
+        sha256sums_url =
+          case Enum.find(assets, fn a -> a["name"] == "SHA256SUMS" end) do
+            %{"browser_download_url" => url} -> url
+            nil -> nil
+          end
 
-            asset_info = %{
-              url: download_url,
-              name: asset_name,
-              size: asset["size"],
-              sha256sums_url: sha256sums_url
-            }
+        if fwup_available do
+          # Try to find .fw file
+          case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
+            %{"browser_download_url" => download_url} = asset ->
+              asset_info = %{
+                url: download_url,
+                name: asset_name,
+                size: asset["size"],
+                sha256sums_url: sha256sums_url
+              }
 
-            {:ok, asset_info}
+              {:ok, asset_info}
 
-          nil ->
-            {:error, "Asset '#{asset_name}' not found in release"}
+            nil ->
+              {:error, "Asset '#{asset_name}' not found in release"}
+          end
+        else
+          # fwup not available, try to find alternative formats
+          find_alternative_asset(assets, asset_name, sha256sums_url)
         end
 
       {:ok, %{status: status, body: body}} ->
@@ -71,6 +80,53 @@ defmodule NervesBurner.Downloader do
 
       {:error, reason} ->
         {:error, "HTTP request failed for #{assets_url}: #{inspect(reason)}"}
+    end
+  end
+
+  defp find_alternative_asset(assets, asset_name, sha256sums_url) do
+    # Get base name without .fw extension
+    base_name = String.replace_suffix(asset_name, ".fw", "")
+
+    # Try to find zip or img.gz alternatives
+    alternative_patterns = [
+      "#{base_name}.zip",
+      "#{base_name}.img.gz",
+      "#{base_name}.img"
+    ]
+
+    result =
+      Enum.find_value(alternative_patterns, fn pattern ->
+        case Enum.find(assets, fn asset -> asset["name"] == pattern end) do
+          %{"browser_download_url" => download_url} = asset ->
+            {:ok, download_url, pattern, asset["size"]}
+
+          nil ->
+            nil
+        end
+      end)
+
+    case result do
+      {:ok, download_url, pattern, size} ->
+        IO.puts(
+          IO.ANSI.format([
+            :yellow,
+            "\nNote: fwup is not available. Downloading alternative format: #{pattern}",
+            :reset
+          ])
+        )
+
+        asset_info = %{
+          url: download_url,
+          name: pattern,
+          size: size,
+          sha256sums_url: sha256sums_url
+        }
+
+        {:ok, asset_info}
+
+      nil ->
+        {:error,
+         "No suitable alternative format (zip, img.gz, img) found for '#{asset_name}'. Please install fwup to use .fw files."}
     end
   end
 
