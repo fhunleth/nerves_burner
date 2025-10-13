@@ -2,16 +2,14 @@ defmodule NervesBurner.VersionCheckerTest do
   use ExUnit.Case
 
   # We can't fully test the version checker without making real HTTP requests,
-  # but we can test the helper functions
+  # but we can test the version comparison using Elixir's Version module
 
   describe "version comparison" do
-    test "parses and compares versions correctly" do
-      # Test that newer versions are detected
-      # Using private function testing pattern
-      assert version_greater?("0.2.0", "0.1.0")
-      assert version_greater?("1.0.0", "0.9.9")
-      assert version_greater?("0.1.1", "0.1.0")
-      assert version_greater?("2.0.0", "1.9.9")
+    test "newer versions are detected correctly" do
+      assert Version.compare("0.2.0", "0.1.0") == :gt
+      assert Version.compare("1.0.0", "0.9.9") == :gt
+      assert Version.compare("0.1.1", "0.1.0") == :gt
+      assert Version.compare("2.0.0", "1.9.9") == :gt
     end
 
     test "handles version strings with 'v' prefix" do
@@ -21,45 +19,21 @@ defmodule NervesBurner.VersionCheckerTest do
     end
 
     test "equal versions are not considered greater" do
-      refute version_greater?("0.1.0", "0.1.0")
-      refute version_greater?("1.0.0", "1.0.0")
+      assert Version.compare("0.1.0", "0.1.0") == :eq
+      assert Version.compare("1.0.0", "1.0.0") == :eq
     end
 
     test "older versions are not considered greater" do
-      refute version_greater?("0.1.0", "0.2.0")
-      refute version_greater?("0.9.9", "1.0.0")
+      assert Version.compare("0.1.0", "0.2.0") == :lt
+      assert Version.compare("0.9.9", "1.0.0") == :lt
     end
   end
 
-  # Helper functions to test private functions
-  defp version_greater?(v1, v2) do
-    parts1 = parse_version(normalize_version(v1))
-    parts2 = parse_version(normalize_version(v2))
-    compare_version_parts(parts1, parts2) == :gt
-  end
-
+  # Helper function to test normalize_version
   defp normalize_version(version) do
     version
     |> String.trim()
     |> String.trim_leading("v")
     |> String.trim_leading("V")
   end
-
-  defp parse_version(version) do
-    version
-    |> String.split(".")
-    |> Enum.map(fn part ->
-      case Integer.parse(part) do
-        {num, _} -> num
-        :error -> 0
-      end
-    end)
-  end
-
-  defp compare_version_parts([], []), do: :eq
-  defp compare_version_parts([h1 | _t1], [h2 | _t2]) when h1 > h2, do: :gt
-  defp compare_version_parts([h1 | _t1], [h2 | _t2]) when h1 < h2, do: :lt
-  defp compare_version_parts([_h1 | t1], [_h2 | t2]), do: compare_version_parts(t1, t2)
-  defp compare_version_parts([_ | _], []), do: :gt
-  defp compare_version_parts([], [_ | _]), do: :lt
 end

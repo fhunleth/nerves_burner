@@ -37,17 +37,19 @@ defmodule NervesBurner.VersionChecker do
             new_version = normalize_version(tag_name)
             current_version = normalize_version(@current_version)
 
-            if version_greater?(new_version, current_version) do
-              # Find the nerves_burner executable in assets
-              case find_executable_asset(assets) do
-                {:ok, download_url} ->
-                  {:update_available, tag_name, download_url}
+            case Version.compare(new_version, current_version) do
+              :gt ->
+                # Find the nerves_burner executable in assets
+                case find_executable_asset(assets) do
+                  {:ok, download_url} ->
+                    {:update_available, tag_name, download_url}
 
-                :not_found ->
-                  {:error, "No executable found in release assets"}
-              end
-            else
-              :up_to_date
+                  :not_found ->
+                    {:error, "No executable found in release assets"}
+                end
+
+              _ ->
+                :up_to_date
             end
 
           _ ->
@@ -165,33 +167,6 @@ defmodule NervesBurner.VersionChecker do
     |> String.trim_leading("v")
     |> String.trim_leading("V")
   end
-
-  # Compare two version strings (e.g., "0.1.0" vs "0.2.0")
-  # Returns true if version1 > version2
-  defp version_greater?(version1, version2) do
-    parts1 = parse_version(version1)
-    parts2 = parse_version(version2)
-
-    compare_version_parts(parts1, parts2) == :gt
-  end
-
-  defp parse_version(version) do
-    version
-    |> String.split(".")
-    |> Enum.map(fn part ->
-      case Integer.parse(part) do
-        {num, _} -> num
-        :error -> 0
-      end
-    end)
-  end
-
-  defp compare_version_parts([], []), do: :eq
-  defp compare_version_parts([h1 | _t1], [h2 | _t2]) when h1 > h2, do: :gt
-  defp compare_version_parts([h1 | _t1], [h2 | _t2]) when h1 < h2, do: :lt
-  defp compare_version_parts([_h1 | t1], [_h2 | t2]), do: compare_version_parts(t1, t2)
-  defp compare_version_parts([_ | _], []), do: :gt
-  defp compare_version_parts([], [_ | _]), do: :lt
 
   # Build headers for GitHub API requests, including auth token if available
   defp github_headers do
