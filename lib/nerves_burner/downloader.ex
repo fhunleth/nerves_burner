@@ -8,13 +8,14 @@ defmodule NervesBurner.Downloader do
   @doc """
   Downloads firmware for the specified image config and platform.
   If fwup is available, downloads .fw file. Otherwise, downloads alternative format (zip or img.gz).
+  For GRiSP2, always downloads img.gz format regardless of fwup availability.
   """
   def download(image_config, platform) do
     fwup_available = NervesBurner.Fwup.available?()
 
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
          {:ok, asset_info} <-
-           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available),
+           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available, platform),
          {:ok, firmware_path} <- download_file(asset_info, platform) do
       {:ok, firmware_path}
     end
@@ -45,7 +46,7 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_asset_url(assets_url, asset_name, fwup_available) do
+  defp find_asset_url(assets_url, asset_name, fwup_available, platform) do
     case Req.get(assets_url, headers: github_headers()) do
       {:ok, %{status: 200, body: assets}} when is_list(assets) ->
         # Look for SHA256SUMS file in the assets
@@ -55,25 +56,30 @@ defmodule NervesBurner.Downloader do
             nil -> nil
           end
 
-        if fwup_available do
-          # Try to find .fw file
-          case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
-            %{"browser_download_url" => download_url} = asset ->
-              asset_info = %{
-                url: download_url,
-                name: asset_name,
-                size: asset["size"],
-                sha256sums_url: sha256sums_url
-              }
-
-              {:ok, asset_info}
-
-            nil ->
-              {:error, "Asset '#{asset_name}' not found in release"}
-          end
+        # GRiSP2 requires img.gz format for eMMC installation
+        if platform == "grisp2" do
+          find_alternative_asset(assets, asset_name, sha256sums_url, platform)
         else
-          # fwup not available, try to find alternative formats
-          find_alternative_asset(assets, asset_name, sha256sums_url)
+          if fwup_available do
+            # Try to find .fw file
+            case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
+              %{"browser_download_url" => download_url} = asset ->
+                asset_info = %{
+                  url: download_url,
+                  name: asset_name,
+                  size: asset["size"],
+                  sha256sums_url: sha256sums_url
+                }
+
+                {:ok, asset_info}
+
+              nil ->
+                {:error, "Asset '#{asset_name}' not found in release"}
+            end
+          else
+            # fwup not available, try to find alternative formats
+            find_alternative_asset(assets, asset_name, sha256sums_url, platform)
+          end
         end
 
       {:ok, %{status: status, body: body}} ->
@@ -85,7 +91,7 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_alternative_asset(assets, asset_name, sha256sums_url) do
+  defp find_alternative_asset(assets, asset_name, sha256sums_url, platform) do
     # Get base name without .fw extension
     base_name = String.replace_suffix(asset_name, ".fw", "")
 
@@ -109,9 +115,15 @@ defmodule NervesBurner.Downloader do
 
     case result do
       {:ok, download_url, pattern, size} ->
-        Output.warning(
-          "\nNote: fwup is not available. Downloading alternative format: #{pattern}"
-        )
+        if platform == "grisp2" do
+          Output.warning(
+            "\nNote: GRiSP2 requires img.gz format for eMMC installation. Downloading: #{pattern}"
+          )
+        else
+          Output.warning(
+            "\nNote: fwup is not available. Downloading alternative format: #{pattern}"
+          )
+        end
 
         asset_info = %{
           url: download_url,
