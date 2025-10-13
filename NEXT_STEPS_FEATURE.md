@@ -23,22 +23,14 @@ Each firmware image in `lib/nerves_burner/firmware_images.ex` can include a `nex
   next_steps: %{
     # Default steps shown for all platforms
     default: """
-    1. Insert the MicroSD card into your device
-    2. Power on the device
-    3. Connect to the device
+    For instructions on getting started, please visit:
+    https://github.com/example/repo#readme
     """,
     # Optional platform-specific overrides
     platforms: %{
-      "rpi" => """
-      1. Insert the MicroSD card into your Raspberry Pi
-      2. Power on via micro USB
-      3. Wait 30-60 seconds for boot
-      4. Connect via SSH to nerves.local
-      """,
-      "bbb" => """
-      1. Insert the MicroSD card into your BeagleBone Black
-      2. Power on the device
-      3. Connect via USB or SSH
+      "grisp2" => """
+      For GRiSP 2 specific instructions, please visit:
+      https://github.com/example/repo#grisp-2-setup
       """
     }
   }
@@ -63,25 +55,21 @@ You can now safely remove the MicroSD card.
 
 📋 Next Steps:
 
-1. Insert the MicroSD card into your Raspberry Pi
-2. Power on the Raspberry Pi (connect to power via micro USB)
-3. Wait for the device to boot (about 30-60 seconds)
-4. Connect via serial console (pins 8 & 10) or SSH to nerves.local
-5. Default credentials: username 'root', no password required
-6. Try the examples in /root/circuits_quickstart
+For instructions on testing the firmware, please visit:
+https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
 ```
 
 ## Example Implementations
 
 ### Circuits Quickstart
-- Provides platform-specific steps for `rpi` and `rpi0`
-- Falls back to generic steps for other platforms
-- Includes connection and example usage instructions
+- Default steps reference the testing documentation for most platforms
+- GRiSP2 has platform-specific steps referencing GRiSP 2 installation documentation
+- Directs users to comprehensive online documentation
 
 ### Nerves Livebook
 - Uses default steps for all platforms
-- Focuses on web browser access to Livebook interface
-- Emphasizes WiFi connectivity
+- References the main README for getting started instructions
+- Keeps documentation up-to-date by linking to the source
 
 ## Adding Next Steps to New Firmware
 

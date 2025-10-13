@@ -211,12 +211,8 @@ You can now safely remove the MicroSD card.
 
 📋 Next Steps:
 
-1. Insert the MicroSD card into your Raspberry Pi
-2. Power on the Raspberry Pi (connect to power via micro USB)
-3. Wait for the device to boot (about 30-60 seconds)
-4. Connect via serial console (pins 8 & 10) or SSH to nerves.local
-5. Default credentials: username 'root', no password required
-6. Try the examples in /root/circuits_quickstart
+For instructions on testing the firmware, please visit:
+https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
 ```
 
 ## Safety Features

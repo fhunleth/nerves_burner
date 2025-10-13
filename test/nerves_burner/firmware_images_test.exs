@@ -196,13 +196,13 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert String.length(config.next_steps.default) > 0
     end
 
-    test "next_steps for Circuits Quickstart returns proper steps for rpi platform" do
+    test "next_steps for Circuits Quickstart returns proper steps for grisp2 platform" do
       images = NervesBurner.FirmwareImages.list()
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
 
-      steps = NervesBurner.FirmwareImages.next_steps(config, "rpi")
+      steps = NervesBurner.FirmwareImages.next_steps(config, "grisp2")
       assert is_binary(steps)
-      assert steps =~ ~r/Raspberry Pi/i
+      assert steps =~ ~r/GRiSP 2/i
     end
 
     test "next_steps for Circuits Quickstart falls back to default for platforms without specific steps" do
@@ -220,7 +220,7 @@ defmodule NervesBurner.FirmwareImagesTest do
 
       steps = NervesBurner.FirmwareImages.next_steps(config, "rpi4")
       assert is_binary(steps)
-      assert steps =~ ~r/Livebook/i
+      assert steps =~ ~r/nerves-livebook\/nerves_livebook/i
     end
   end
 end

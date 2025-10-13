@@ -41,29 +41,14 @@ defmodule NervesBurner.FirmwareImages do
          next_steps: %{
            # Default next steps for all platforms
            default: """
-           1. Insert the MicroSD card into your device
-           2. Power on the device
-           3. Connect to the device via serial console or SSH
-           4. Explore the example code in /root/circuits_quickstart
-           5. Try running the examples with: iex -S mix
+           For instructions on testing the firmware, please visit:
+           https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
            """,
            # Platform-specific next steps (optional)
            platforms: %{
-             "rpi" => """
-             1. Insert the MicroSD card into your Raspberry Pi
-             2. Power on the Raspberry Pi (connect to power via micro USB)
-             3. Wait for the device to boot (about 30-60 seconds)
-             4. Connect via serial console (pins 8 & 10) or SSH to nerves.local
-             5. Default credentials: username 'root', no password required
-             6. Try the examples in /root/circuits_quickstart
-             """,
-             "rpi0" => """
-             1. Insert the MicroSD card into your Raspberry Pi Zero
-             2. Power on the Raspberry Pi Zero (connect to power via micro USB)
-             3. Wait for the device to boot (about 30-60 seconds)
-             4. Connect via serial console (pins 8 & 10) or SSH to nerves.local
-             5. Default credentials: username 'root', no password required
-             6. Try the examples in /root/circuits_quickstart
+             "grisp2" => """
+             For GRiSP 2 installation instructions, please visit:
+             https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#grisp-2-installation
              """
            }
          }
@@ -102,11 +87,8 @@ defmodule NervesBurner.FirmwareImages do
          next_steps: %{
            # Default next steps for all platforms
            default: """
-           1. Insert the MicroSD card into your device
-           2. Power on the device
-           3. Wait for the device to boot and connect to your WiFi network
-           4. Open a web browser and navigate to http://nerves.local
-           5. Start exploring Livebook notebooks and hardware examples!
+           For instructions on getting started, please visit:
+           https://github.com/nerves-livebook/nerves_livebook#readme
            """
          }
        }}
