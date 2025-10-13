@@ -7,7 +7,8 @@ This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - Automatic version checking at startup
   - Checks GitHub releases for newer versions of nerves_burner
-  - Prompts user to download and restart with new version if available
+  - Prompts user to download new version if available
+  - Shows download location and instructions to run manually
   - Gracefully handles errors with warnings
   - Silently skips check if network issues or rate limiting occurs
 

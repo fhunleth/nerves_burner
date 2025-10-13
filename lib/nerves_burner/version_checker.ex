@@ -89,9 +89,9 @@ defmodule NervesBurner.VersionChecker do
     Output.info("Current version: #{@current_version}")
     IO.puts("")
 
-    case get_user_input("Would you like to download and use the new version? (y/n): ") do
+    case get_user_input("Would you like to download the new version? (y/n): ") do
       input when input in ["y", "Y", "yes", "Yes", "YES"] ->
-        download_and_restart(new_version, download_url)
+        download_new_version(new_version, download_url)
 
       _ ->
         Output.info("Continuing with current version...")
@@ -99,7 +99,7 @@ defmodule NervesBurner.VersionChecker do
     end
   end
 
-  defp download_and_restart(new_version, download_url) do
+  defp download_new_version(new_version, download_url) do
     temp_path = Path.join(System.tmp_dir!(), "nerves_burner_#{new_version}")
 
     Output.info("Downloading new version...")
@@ -110,12 +110,13 @@ defmodule NervesBurner.VersionChecker do
         case File.chmod(temp_path, 0o755) do
           :ok ->
             Output.success("✓ Download complete!")
-            Output.info("Restarting with new version...")
             IO.puts("")
-
-            # Execute the new version and exit current process
-            System.cmd(temp_path, [], into: IO.stream())
-            System.halt(0)
+            Output.info("New version downloaded to: #{temp_path}")
+            Output.info("Please run the new version manually:")
+            IO.puts("")
+            IO.puts("  #{temp_path}")
+            IO.puts("")
+            :ok
 
           {:error, reason} ->
             Output.warning("⚠ Failed to make file executable: #{inspect(reason)}")
