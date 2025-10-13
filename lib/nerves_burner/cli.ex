@@ -8,6 +8,9 @@ defmodule NervesBurner.CLI do
   def main(_args) do
     print_banner()
 
+    # Check for version updates
+    NervesBurner.VersionChecker.check_and_prompt_update()
+
     fwup_available = NervesBurner.Fwup.available?()
 
     with {:ok, image_config} <- select_firmware_image(),
