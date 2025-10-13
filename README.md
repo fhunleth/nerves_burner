@@ -4,6 +4,7 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
 
 ## Features
 
+- **Automatic version checking**: Checks for updates at startup and offers to download new versions
 - Interactive menu-driven interface
 - Support for multiple firmware images:
   - Circuits Quickstart
