@@ -37,7 +37,36 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end
+         asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end,
+         next_steps: %{
+           # Default next steps for all platforms
+           default: """
+           1. Insert the MicroSD card into your device
+           2. Power on the device
+           3. Connect to the device via serial console or SSH
+           4. Explore the example code in /root/circuits_quickstart
+           5. Try running the examples with: iex -S mix
+           """,
+           # Platform-specific next steps (optional)
+           platforms: %{
+             "rpi" => """
+             1. Insert the MicroSD card into your Raspberry Pi
+             2. Power on the Raspberry Pi (connect to power via micro USB)
+             3. Wait for the device to boot (about 30-60 seconds)
+             4. Connect via serial console (pins 8 & 10) or SSH to nerves.local
+             5. Default credentials: username 'root', no password required
+             6. Try the examples in /root/circuits_quickstart
+             """,
+             "rpi0" => """
+             1. Insert the MicroSD card into your Raspberry Pi Zero
+             2. Power on the Raspberry Pi Zero (connect to power via micro USB)
+             3. Wait for the device to boot (about 30-60 seconds)
+             4. Connect via serial console (pins 8 & 10) or SSH to nerves.local
+             5. Default credentials: username 'root', no password required
+             6. Try the examples in /root/circuits_quickstart
+             """
+           }
+         }
        }},
       {"Nerves Livebook",
        %{
@@ -69,7 +98,17 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end
+         asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end,
+         next_steps: %{
+           # Default next steps for all platforms
+           default: """
+           1. Insert the MicroSD card into your device
+           2. Power on the device
+           3. Wait for the device to boot and connect to your WiFi network
+           4. Open a web browser and navigate to http://nerves.local
+           5. Start exploring Livebook notebooks and hardware examples!
+           """
+         }
        }}
     ]
   end
@@ -93,6 +132,30 @@ defmodule NervesBurner.FirmwareImages do
       "grisp2" -> "GRiSP 2 (grisp2)"
       "mangopi_mq_pro" -> "MangoPi MQ Pro (mangopi_mq_pro)"
       _ -> platform
+    end
+  end
+
+  @doc """
+  Returns the next steps for a given firmware image and platform.
+  
+  Checks for platform-specific next steps first, then falls back to the default.
+  Returns nil if no next steps are defined.
+  """
+  def next_steps(image_config, platform) do
+    case Map.get(image_config, :next_steps) do
+      nil ->
+        nil
+
+      next_steps_config ->
+        # First check for platform-specific next steps
+        platform_steps =
+          case Map.get(next_steps_config, :platforms) do
+            nil -> nil
+            platforms_map -> Map.get(platforms_map, platform)
+          end
+
+        # Fall back to default if no platform-specific steps
+        platform_steps || Map.get(next_steps_config, :default)
     end
   end
 end

@@ -20,6 +20,7 @@ defmodule NervesBurner.CLI do
            :ok <- burn_firmware(firmware_path, device, wifi_config) do
         Output.success("\n✓ Firmware burned successfully!\n")
         Output.info("You can now safely remove the MicroSD card.\n")
+        print_next_steps(image_config, platform)
       else
         {:error, :cancelled} ->
           IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
@@ -418,5 +419,16 @@ defmodule NervesBurner.CLI do
         :reset
       ])
     )
+  end
+
+  defp print_next_steps(image_config, platform) do
+    case NervesBurner.FirmwareImages.next_steps(image_config, platform) do
+      nil ->
+        :ok
+
+      next_steps ->
+        Output.section("\n📋 Next Steps:\n")
+        Output.info(String.trim(next_steps) <> "\n")
+    end
   end
 end
