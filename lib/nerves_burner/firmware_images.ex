@@ -119,7 +119,7 @@ defmodule NervesBurner.FirmwareImages do
 
   @doc """
   Returns the next steps for a given firmware image and platform.
-  
+
   Checks for platform-specific next steps first, then falls back to the default.
   Returns nil if no next steps are defined.
   """
