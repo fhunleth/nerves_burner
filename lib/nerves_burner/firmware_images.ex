@@ -3,6 +3,24 @@ defmodule NervesBurner.FirmwareImages do
   Configuration for available firmware images.
   """
 
+  # Platform-specific configurations
+  # These define special behaviors for certain platforms
+  @platform_configs %{
+    "grisp2" => %{
+      # GRiSP2 stores firmware on eMMC and requires img.gz format
+      force_alternative_format: true,
+      alternative_pattern: fn base_name -> "#{base_name}.img.gz" end,
+      message: "GRiSP2 requires img.gz format for eMMC installation"
+    }
+  }
+
+  @doc """
+  Returns platform-specific configuration if it exists.
+  """
+  def get_platform_config(platform) do
+    Map.get(@platform_configs, platform)
+  end
+
   @doc """
   Lists all available firmware images with their configurations.
   """

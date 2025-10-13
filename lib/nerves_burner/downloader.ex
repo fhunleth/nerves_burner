@@ -8,14 +8,15 @@ defmodule NervesBurner.Downloader do
   @doc """
   Downloads firmware for the specified image config and platform.
   If fwup is available, downloads .fw file. Otherwise, downloads alternative format (zip or img.gz).
-  For GRiSP2, always downloads img.gz format regardless of fwup availability.
+  Some platforms may require alternative formats regardless of fwup availability.
   """
   def download(image_config, platform) do
     fwup_available = NervesBurner.Fwup.available?()
+    platform_config = NervesBurner.FirmwareImages.get_platform_config(platform)
 
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
          {:ok, asset_info} <-
-           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available, platform),
+           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available, platform_config),
          {:ok, firmware_path} <- download_file(asset_info, platform) do
       {:ok, firmware_path}
     end
@@ -46,7 +47,7 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_asset_url(assets_url, asset_name, fwup_available, platform) do
+  defp find_asset_url(assets_url, asset_name, fwup_available, platform_config) do
     case Req.get(assets_url, headers: github_headers()) do
       {:ok, %{status: 200, body: assets}} when is_list(assets) ->
         # Look for SHA256SUMS file in the assets
@@ -56,29 +57,27 @@ defmodule NervesBurner.Downloader do
             nil -> nil
           end
 
-        # GRiSP2 requires img.gz format for eMMC installation
-        if platform == "grisp2" do
-          find_alternative_asset(assets, asset_name, sha256sums_url, platform)
+        # Check if platform requires alternative format
+        force_alternative = platform_config && platform_config.force_alternative_format
+
+        if force_alternative or not fwup_available do
+          # Use alternative formats (either forced by platform or fwup not available)
+          find_alternative_asset(assets, asset_name, sha256sums_url, platform_config)
         else
-          if fwup_available do
-            # Try to find .fw file
-            case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
-              %{"browser_download_url" => download_url} = asset ->
-                asset_info = %{
-                  url: download_url,
-                  name: asset_name,
-                  size: asset["size"],
-                  sha256sums_url: sha256sums_url
-                }
+          # Try to find .fw file
+          case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
+            %{"browser_download_url" => download_url} = asset ->
+              asset_info = %{
+                url: download_url,
+                name: asset_name,
+                size: asset["size"],
+                sha256sums_url: sha256sums_url
+              }
 
-                {:ok, asset_info}
+              {:ok, asset_info}
 
-              nil ->
-                {:error, "Asset '#{asset_name}' not found in release"}
-            end
-          else
-            # fwup not available, try to find alternative formats
-            find_alternative_asset(assets, asset_name, sha256sums_url, platform)
+            nil ->
+              {:error, "Asset '#{asset_name}' not found in release"}
           end
         end
 
@@ -91,19 +90,16 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_alternative_asset(assets, asset_name, sha256sums_url, platform) do
+  defp find_alternative_asset(assets, asset_name, sha256sums_url, platform_config) do
     # Get base name without .fw extension
     base_name = String.replace_suffix(asset_name, ".fw", "")
 
-    # Try to find zip or img.gz alternatives
-    # For GRiSP2, prioritize img.gz format
-    alternative_patterns = if platform == "grisp2" do
-      [
-        "#{base_name}.img.gz",
-        "#{base_name}.img",
-        "#{base_name}.zip"
-      ]
+    # Determine alternative patterns based on platform config
+    alternative_patterns = if platform_config && platform_config.alternative_pattern do
+      # Platform has specific pattern requirement
+      [platform_config.alternative_pattern.(base_name)]
     else
+      # Default patterns: try zip, img.gz, img
       [
         "#{base_name}.zip",
         "#{base_name}.img.gz",
@@ -124,10 +120,9 @@ defmodule NervesBurner.Downloader do
 
     case result do
       {:ok, download_url, pattern, size} ->
-        if platform == "grisp2" do
-          Output.warning(
-            "\nNote: GRiSP2 requires img.gz format for eMMC installation. Downloading: #{pattern}"
-          )
+        # Display appropriate message based on platform config
+        if platform_config && platform_config.message do
+          Output.warning("\nNote: #{platform_config.message}. Downloading: #{pattern}")
         else
           Output.warning(
             "\nNote: fwup is not available. Downloading alternative format: #{pattern}"
