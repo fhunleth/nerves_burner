@@ -22,7 +22,7 @@ defmodule NervesBurner.VersionChecker do
         :ok
 
       {:error, reason} ->
-        Output.warning("⚠ Version check failed: #{reason}")
+        Output.warning("⚠ Version check skipped: #{reason}")
         :ok
     end
   end
@@ -112,7 +112,7 @@ defmodule NervesBurner.VersionChecker do
             IO.puts("")
 
             # Execute the new version and exit current process
-            System.cmd(temp_path, System.argv(), into: IO.stream())
+            System.cmd(temp_path, [], into: IO.stream())
             System.halt(0)
 
           {:error, reason} ->
