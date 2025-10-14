@@ -110,12 +110,25 @@ defmodule NervesBurner.VersionChecker do
           :ok ->
             Output.success("✓ Download complete!")
             IO.puts("")
-            Output.info("New version downloaded to: #{temp_path}")
-            Output.info("Please run the new version manually:")
-            IO.puts("")
-            IO.puts("  #{temp_path}")
-            IO.puts("")
-            :ok
+            
+            # Try to replace the existing version
+            case replace_current_executable(temp_path) do
+              :ok ->
+                Output.success("✓ Successfully replaced the current version!")
+                Output.info("The new version is now active. You can continue using this tool.")
+                IO.puts("")
+                :ok
+              
+              {:error, reason} ->
+                # Fall back to manual instructions
+                Output.warning("⚠ Could not replace current version: #{reason}")
+                Output.info("New version downloaded to: #{temp_path}")
+                Output.info("Please replace the existing version manually:")
+                IO.puts("")
+                IO.puts("  #{temp_path}")
+                IO.puts("")
+                :ok
+            end
 
           {:error, reason} ->
             Output.warning("⚠ Failed to make file executable: #{inspect(reason)}")
@@ -127,6 +140,36 @@ defmodule NervesBurner.VersionChecker do
         Output.warning("⚠ Download failed: #{reason}")
         Output.info("Continuing with current version...")
         :ok
+    end
+  end
+
+  defp replace_current_executable(new_path) do
+    # Get the path to the current executable
+    case get_current_executable_path() do
+      {:ok, current_path} ->
+        # Try to replace the current executable with the new one
+        case File.cp(new_path, current_path) do
+          :ok ->
+            :ok
+          
+          {:error, reason} ->
+            {:error, inspect(reason)}
+        end
+      
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp get_current_executable_path do
+    # When running as an escript, :escript.script_name() gives us the path
+    try do
+      script_name = :escript.script_name()
+      path = List.to_string(script_name)
+      {:ok, path}
+    rescue
+      _ ->
+        {:error, "Not running as escript"}
     end
   end
 

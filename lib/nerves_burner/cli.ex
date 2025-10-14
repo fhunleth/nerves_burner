@@ -94,7 +94,9 @@ defmodule NervesBurner.CLI do
     \e[38;5;24m███▌    \e[38;5;74m▀▀████\e[0m
     """
 
+    version = get_version()
     IO.puts(["\n", logo])
+    IO.puts(IO.ANSI.format([:faint, "    version #{version}\n", :reset]))
   end
 
   defp select_firmware_image do
@@ -473,5 +475,11 @@ defmodule NervesBurner.CLI do
         Output.section("\n📋 Next Steps:\n")
         Output.info(String.trim(next_steps) <> "\n")
     end
+  end
+
+  defp get_version do
+    :nerves_burner
+    |> Application.spec(:vsn)
+    |> to_string()
   end
 end
