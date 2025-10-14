@@ -39,12 +39,10 @@ defmodule NervesBurner.FirmwareImages do
          ],
          asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end,
          next_steps: %{
-           # Default next steps for all platforms
            default: """
-           For instructions on testing the firmware, please visit:
+           For instructions on using Circuits Quickstart, please visit:
            https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
            """,
-           # Platform-specific next steps (optional)
            platforms: %{
              "grisp2" => """
              For GRiSP 2 installation instructions, please visit:
@@ -89,7 +87,13 @@ defmodule NervesBurner.FirmwareImages do
            default: """
            For instructions on getting started, please visit:
            https://github.com/nerves-livebook/nerves_livebook#readme
-           """
+           """,
+           platforms: %{
+             "grisp2" => """
+             For GRiSP 2 installation instructions, please visit:
+             https://github.com/nerves-livebook/nerves_livebook?tab=readme-ov-file#grisp-2-installation
+             """
+           }
          }
        }}
     ]
