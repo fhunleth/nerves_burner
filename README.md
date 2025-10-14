@@ -25,6 +25,7 @@ A user-friendly Elixir script for downloading and burning pre-built Nerves firmw
   - Without fwup: Downloads alternative formats and provides manual burning instructions
 - Safe device selection with confirmation prompts
 - Optional WiFi credentials configuration (for supported firmware images)
+- **Next steps guidance**: Customizable post-burn instructions for each firmware and board
 
 ## Installation
 
@@ -207,6 +208,11 @@ This may take several minutes. Please do not remove the card.
 
 ✓ Firmware burned successfully!
 You can now safely remove the MicroSD card.
+
+📋 Next Steps:
+
+For instructions on testing the firmware, please visit:
+https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
 ```
 
 ## Safety Features

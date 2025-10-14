@@ -37,7 +37,21 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end
+         asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end,
+         next_steps: %{
+           # Default next steps for all platforms
+           default: """
+           For instructions on testing the firmware, please visit:
+           https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
+           """,
+           # Platform-specific next steps (optional)
+           platforms: %{
+             "grisp2" => """
+             For GRiSP 2 installation instructions, please visit:
+             https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#grisp-2-installation
+             """
+           }
+         }
        }},
       {"Nerves Livebook",
        %{
@@ -69,7 +83,14 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end
+         asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end,
+         next_steps: %{
+           # Default next steps for all platforms
+           default: """
+           For instructions on getting started, please visit:
+           https://github.com/nerves-livebook/nerves_livebook#readme
+           """
+         }
        }}
     ]
   end
@@ -93,6 +114,30 @@ defmodule NervesBurner.FirmwareImages do
       "grisp2" -> "GRiSP 2 (grisp2)"
       "mangopi_mq_pro" -> "MangoPi MQ Pro (mangopi_mq_pro)"
       _ -> platform
+    end
+  end
+
+  @doc """
+  Returns the next steps for a given firmware image and platform.
+
+  Checks for platform-specific next steps first, then falls back to the default.
+  Returns nil if no next steps are defined.
+  """
+  def next_steps(image_config, platform) do
+    case Map.get(image_config, :next_steps) do
+      nil ->
+        nil
+
+      next_steps_config ->
+        # First check for platform-specific next steps
+        platform_steps =
+          case Map.get(next_steps_config, :platforms) do
+            nil -> nil
+            platforms_map -> Map.get(platforms_map, platform)
+          end
+
+        # Fall back to default if no platform-specific steps
+        platform_steps || Map.get(next_steps_config, :default)
     end
   end
 end

@@ -133,4 +133,94 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert NervesBurner.FirmwareImages.platform_name("unknown") == "unknown"
     end
   end
+
+  describe "next_steps/2" do
+    test "returns nil for image config without next_steps" do
+      config = %{repo: "test/test", platforms: ["rpi"]}
+      assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == nil
+    end
+
+    test "returns default next steps when no platform-specific steps exist" do
+      config = %{
+        next_steps: %{
+          default: "Default steps here"
+        }
+      }
+
+      assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == "Default steps here"
+    end
+
+    test "returns platform-specific next steps when available" do
+      config = %{
+        next_steps: %{
+          default: "Default steps",
+          platforms: %{
+            "rpi" => "RPi specific steps"
+          }
+        }
+      }
+
+      assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == "RPi specific steps"
+    end
+
+    test "falls back to default when platform-specific steps not found" do
+      config = %{
+        next_steps: %{
+          default: "Default steps",
+          platforms: %{
+            "rpi" => "RPi specific steps"
+          }
+        }
+      }
+
+      assert NervesBurner.FirmwareImages.next_steps(config, "bbb") == "Default steps"
+    end
+
+    test "Circuits Quickstart has next steps defined" do
+      images = NervesBurner.FirmwareImages.list()
+      {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
+
+      assert Map.has_key?(config, :next_steps)
+      assert Map.has_key?(config.next_steps, :default)
+      assert is_binary(config.next_steps.default)
+      assert String.length(config.next_steps.default) > 0
+    end
+
+    test "Nerves Livebook has next steps defined" do
+      images = NervesBurner.FirmwareImages.list()
+      {_name, config} = Enum.find(images, fn {name, _} -> name == "Nerves Livebook" end)
+
+      assert Map.has_key?(config, :next_steps)
+      assert Map.has_key?(config.next_steps, :default)
+      assert is_binary(config.next_steps.default)
+      assert String.length(config.next_steps.default) > 0
+    end
+
+    test "next_steps for Circuits Quickstart returns proper steps for grisp2 platform" do
+      images = NervesBurner.FirmwareImages.list()
+      {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
+
+      steps = NervesBurner.FirmwareImages.next_steps(config, "grisp2")
+      assert is_binary(steps)
+      assert steps =~ ~r/GRiSP 2/i
+    end
+
+    test "next_steps for Circuits Quickstart falls back to default for platforms without specific steps" do
+      images = NervesBurner.FirmwareImages.list()
+      {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
+
+      steps = NervesBurner.FirmwareImages.next_steps(config, "bbb")
+      assert is_binary(steps)
+      assert steps == config.next_steps.default
+    end
+
+    test "next_steps for Nerves Livebook returns default steps" do
+      images = NervesBurner.FirmwareImages.list()
+      {_name, config} = Enum.find(images, fn {name, _} -> name == "Nerves Livebook" end)
+
+      steps = NervesBurner.FirmwareImages.next_steps(config, "rpi4")
+      assert is_binary(steps)
+      assert steps =~ ~r/nerves-livebook\/nerves_livebook/i
+    end
+  end
 end
