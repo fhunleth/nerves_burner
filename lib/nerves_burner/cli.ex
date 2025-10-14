@@ -96,7 +96,7 @@ defmodule NervesBurner.CLI do
 
     version = get_version()
     IO.puts(["\n", logo])
-    IO.puts(IO.ANSI.format([:faint, "    version #{version}\n", :reset]))
+    IO.puts(IO.ANSI.format([:faint, "Nerves Burner v#{version}\n", :reset]))
   end
 
   defp select_firmware_image do
