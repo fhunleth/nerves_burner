@@ -3,24 +3,6 @@ defmodule NervesBurner.FirmwareImages do
   Configuration for available firmware images.
   """
 
-  # Platform-specific configurations
-  # These define special behaviors for certain platforms
-  @platform_configs %{
-    "grisp2" => %{
-      # GRiSP2 stores firmware on eMMC and requires img.gz format
-      force_alternative_format: true,
-      alternative_pattern: fn base_name -> "#{base_name}.img.gz" end,
-      message: "GRiSP2 requires img.gz format for eMMC installation"
-    }
-  }
-
-  @doc """
-  Returns platform-specific configuration if it exists.
-  """
-  def get_platform_config(platform) do
-    Map.get(@platform_configs, platform)
-  end
-
   @doc """
   Lists all available firmware images with their configurations.
   """
@@ -55,14 +37,16 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end,
-         next_steps: %{
-           default: """
-           For instructions on using Circuits Quickstart, please visit:
-           https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
-           """,
-           platforms: %{
-             "grisp2" => """
+         fw_asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end,
+         image_asset_pattern: fn platform -> "circuits_quickstart_#{platform}.img.gz" end,
+         next_steps: """
+         For instructions on using Circuits Quickstart, please visit:
+         https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
+         """,
+         overrides: %{
+           "grisp2" => %{
+             use_image_asset: true,
+             next_steps: """
              For GRiSP 2 installation instructions, please visit:
              https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#grisp-2-installation
              """
@@ -99,15 +83,16 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end,
-         next_steps: %{
-           # Default next steps for all platforms
-           default: """
-           For instructions on getting started, please visit:
-           https://github.com/nerves-livebook/nerves_livebook#readme
-           """,
-           platforms: %{
-             "grisp2" => """
+         fw_asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end,
+         image_asset_pattern: fn platform -> "nerves_livebook_#{platform}.img.gz" end,
+         next_steps: """
+         For instructions on getting started, please visit:
+         https://github.com/nerves-livebook/nerves_livebook#readme
+         """,
+         overrides: %{
+           "grisp2" => %{
+             use_image_asset: true,
+             next_steps: """
              For GRiSP 2 installation instructions, please visit:
              https://github.com/nerves-livebook/nerves_livebook?tab=readme-ov-file#grisp-2-installation
              """
@@ -142,24 +127,28 @@ defmodule NervesBurner.FirmwareImages do
   @doc """
   Returns the next steps for a given firmware image and platform.
 
-  Checks for platform-specific next steps first, then falls back to the default.
+  Checks for platform-specific next steps in overrides first, then falls back to default.
   Returns nil if no next steps are defined.
   """
   def next_steps(image_config, platform) do
-    case Map.get(image_config, :next_steps) do
-      nil ->
-        nil
+    # Check for platform overrides first
+    case get_platform_override(image_config, platform) do
+      %{next_steps: override_steps} ->
+        override_steps
 
-      next_steps_config ->
-        # First check for platform-specific next steps
-        platform_steps =
-          case Map.get(next_steps_config, :platforms) do
-            nil -> nil
-            platforms_map -> Map.get(platforms_map, platform)
-          end
+      _ ->
+        # Fall back to default next steps
+        Map.get(image_config, :next_steps)
+    end
+  end
 
-        # Fall back to default if no platform-specific steps
-        platform_steps || Map.get(next_steps_config, :default)
+  @doc """
+  Returns the platform-specific override configuration if it exists.
+  """
+  def get_platform_override(image_config, platform) do
+    case Map.get(image_config, :overrides) do
+      nil -> nil
+      overrides -> Map.get(overrides, platform)
     end
   end
 end

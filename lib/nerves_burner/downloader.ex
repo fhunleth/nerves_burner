@@ -8,19 +8,29 @@ defmodule NervesBurner.Downloader do
   @doc """
   Downloads firmware for the specified image config and platform.
   If fwup is available, downloads .fw file. Otherwise, downloads alternative format (zip or img.gz).
-  Some platforms may require alternative formats regardless of fwup availability.
+  Some platforms may require image assets regardless of fwup availability (via overrides).
   """
   def download(image_config, platform) do
     fwup_available = NervesBurner.Fwup.available?()
-    platform_config = NervesBurner.FirmwareImages.get_platform_config(platform)
+    platform_override = NervesBurner.FirmwareImages.get_platform_override(image_config, platform)
+
+    # Determine which asset pattern to use
+    {asset_name, use_image_asset} =
+      if platform_override && platform_override.use_image_asset do
+        # Platform override forces use of image asset
+        {image_config.image_asset_pattern.(platform), true}
+      else
+        # Default to fw asset (but may fall back to image if fwup not available)
+        {image_config.fw_asset_pattern.(platform), false}
+      end
 
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
          {:ok, asset_info} <-
            find_asset_url(
              release_url,
-             image_config.asset_pattern.(platform),
+             asset_name,
              fwup_available,
-             platform_config
+             use_image_asset
            ),
          {:ok, firmware_path} <- download_file(asset_info, platform) do
       {:ok, firmware_path}
@@ -52,7 +62,7 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_asset_url(assets_url, asset_name, fwup_available, platform_config) do
+  defp find_asset_url(assets_url, asset_name, fwup_available, use_image_asset) do
     case Req.get(assets_url, headers: github_headers()) do
       {:ok, %{status: 200, body: assets}} when is_list(assets) ->
         # Look for SHA256SUMS file in the assets
@@ -62,27 +72,29 @@ defmodule NervesBurner.Downloader do
             nil -> nil
           end
 
-        # Check if platform requires alternative format
-        force_alternative = platform_config && platform_config.force_alternative_format
-
-        if force_alternative or not fwup_available do
-          # Use alternative formats (either forced by platform or fwup not available)
-          find_alternative_asset(assets, asset_name, sha256sums_url, platform_config)
+        if use_image_asset do
+          # Platform requires image asset, show appropriate message
+          find_image_asset(assets, asset_name, sha256sums_url)
         else
-          # Try to find .fw file
-          case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
-            %{"browser_download_url" => download_url} = asset ->
-              asset_info = %{
-                url: download_url,
-                name: asset_name,
-                size: asset["size"],
-                sha256sums_url: sha256sums_url
-              }
+          if fwup_available do
+            # Try to find .fw file
+            case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
+              %{"browser_download_url" => download_url} = asset ->
+                asset_info = %{
+                  url: download_url,
+                  name: asset_name,
+                  size: asset["size"],
+                  sha256sums_url: sha256sums_url
+                }
 
-              {:ok, asset_info}
+                {:ok, asset_info}
 
-            nil ->
-              {:error, "Asset '#{asset_name}' not found in release"}
+              nil ->
+                {:error, "Asset '#{asset_name}' not found in release"}
+            end
+          else
+            # fwup not available, try to find alternative formats
+            find_alternative_asset(assets, asset_name, sha256sums_url)
           end
         end
 
@@ -95,23 +107,38 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp find_alternative_asset(assets, asset_name, sha256sums_url, platform_config) do
+  defp find_image_asset(assets, asset_name, sha256sums_url) do
+    # asset_name is already the image asset pattern (e.g., "circuits_quickstart_grisp2.img.gz")
+    case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
+      %{"browser_download_url" => download_url} = asset ->
+        Output.warning(
+          "\nNote: This platform requires img.gz format for installation. Downloading: #{asset_name}"
+        )
+
+        asset_info = %{
+          url: download_url,
+          name: asset_name,
+          size: asset["size"],
+          sha256sums_url: sha256sums_url
+        }
+
+        {:ok, asset_info}
+
+      nil ->
+        {:error, "Image asset '#{asset_name}' not found in release"}
+    end
+  end
+
+  defp find_alternative_asset(assets, asset_name, sha256sums_url) do
     # Get base name without .fw extension
     base_name = String.replace_suffix(asset_name, ".fw", "")
 
-    # Determine alternative patterns based on platform config
-    alternative_patterns =
-      if platform_config && platform_config.alternative_pattern do
-        # Platform has specific pattern requirement
-        [platform_config.alternative_pattern.(base_name)]
-      else
-        # Default patterns: try zip, img.gz, img
-        [
-          "#{base_name}.zip",
-          "#{base_name}.img.gz",
-          "#{base_name}.img"
-        ]
-      end
+    # Default patterns: try zip, img.gz, img
+    alternative_patterns = [
+      "#{base_name}.zip",
+      "#{base_name}.img.gz",
+      "#{base_name}.img"
+    ]
 
     result =
       Enum.find_value(alternative_patterns, fn pattern ->
@@ -126,14 +153,9 @@ defmodule NervesBurner.Downloader do
 
     case result do
       {:ok, download_url, pattern, size} ->
-        # Display appropriate message based on platform config
-        if platform_config && platform_config.message do
-          Output.warning("\nNote: #{platform_config.message}. Downloading: #{pattern}")
-        else
-          Output.warning(
-            "\nNote: fwup is not available. Downloading alternative format: #{pattern}"
-          )
-        end
+        Output.warning(
+          "\nNote: fwup is not available. Downloading alternative format: #{pattern}"
+        )
 
         asset_info = %{
           url: download_url,
