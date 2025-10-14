@@ -16,7 +16,12 @@ defmodule NervesBurner.Downloader do
 
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
          {:ok, asset_info} <-
-           find_asset_url(release_url, image_config.asset_pattern.(platform), fwup_available, platform_config),
+           find_asset_url(
+             release_url,
+             image_config.asset_pattern.(platform),
+             fwup_available,
+             platform_config
+           ),
          {:ok, firmware_path} <- download_file(asset_info, platform) do
       {:ok, firmware_path}
     end
@@ -95,17 +100,18 @@ defmodule NervesBurner.Downloader do
     base_name = String.replace_suffix(asset_name, ".fw", "")
 
     # Determine alternative patterns based on platform config
-    alternative_patterns = if platform_config && platform_config.alternative_pattern do
-      # Platform has specific pattern requirement
-      [platform_config.alternative_pattern.(base_name)]
-    else
-      # Default patterns: try zip, img.gz, img
-      [
-        "#{base_name}.zip",
-        "#{base_name}.img.gz",
-        "#{base_name}.img"
-      ]
-    end
+    alternative_patterns =
+      if platform_config && platform_config.alternative_pattern do
+        # Platform has specific pattern requirement
+        [platform_config.alternative_pattern.(base_name)]
+      else
+        # Default patterns: try zip, img.gz, img
+        [
+          "#{base_name}.zip",
+          "#{base_name}.img.gz",
+          "#{base_name}.img"
+        ]
+      end
 
     result =
       Enum.find_value(alternative_patterns, fn pattern ->
