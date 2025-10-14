@@ -10,44 +10,75 @@ defmodule NervesBurner.CLI do
 
     fwup_available = NervesBurner.Fwup.available?()
 
-    if fwup_available do
-      # Full workflow with fwup
-      with {:ok, image_config} <- select_firmware_image(),
-           {:ok, platform} <- select_platform(image_config),
-           {:ok, wifi_config} <- get_wifi_credentials(),
-           {:ok, firmware_path} <- download_firmware(image_config, platform),
-           {:ok, device} <- select_device(),
-           :ok <- burn_firmware(firmware_path, device, wifi_config) do
-        Output.success("\n✓ Firmware burned successfully!\n")
-        Output.info("You can now safely remove the MicroSD card.\n")
-        print_next_steps(image_config, platform)
+    with {:ok, image_config} <- select_firmware_image(),
+         {:ok, platform} <- select_platform(image_config) do
+      # Check if this platform uses image assets
+      platform_override =
+        NervesBurner.FirmwareImages.get_platform_override(image_config, platform)
+
+      uses_image_asset = platform_override && platform_override.use_image_asset
+
+      if uses_image_asset do
+        # Image asset workflow - download only, no WiFi config, no burning
+        case download_firmware(image_config, platform) do
+          {:ok, firmware_path} ->
+            print_image_asset_instructions(firmware_path, image_config, platform)
+
+          {:error, reason} ->
+            Output.error("\n✗ Error: #{reason}\n")
+            System.halt(1)
+        end
       else
-        {:error, :cancelled} ->
-          IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
-          System.halt(0)
+        # Standard workflow with fwup
+        if fwup_available do
+          # Full workflow with fwup
+          with {:ok, wifi_config} <- get_wifi_credentials(),
+               {:ok, firmware_path} <- download_firmware(image_config, platform),
+               {:ok, device} <- select_device(),
+               :ok <- burn_firmware(firmware_path, device, wifi_config) do
+            Output.success("\n✓ Firmware burned successfully!\n")
+            Output.info("You can now safely remove the MicroSD card.\n")
+            print_next_steps(image_config, platform)
+          else
+            {:error, :cancelled} ->
+              IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
+              System.halt(0)
 
-        {:error, reason} ->
-          IO.puts(
-            IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset])
-          )
+            {:error, reason} ->
+              IO.puts(
+                IO.ANSI.format([
+                  :red,
+                  :bright,
+                  "\n✗ Error: ",
+                  :reset,
+                  :red,
+                  "#{reason}\n",
+                  :reset
+                ])
+              )
 
-          System.halt(1)
+              System.halt(1)
+          end
+        else
+          # Download-only workflow without fwup
+          case download_firmware(image_config, platform) do
+            {:ok, firmware_path} ->
+              print_manual_burn_instructions(firmware_path)
+
+            {:error, reason} ->
+              Output.error("\n✗ Error: #{reason}\n")
+              System.halt(1)
+          end
+        end
       end
     else
-      # Download-only workflow without fwup
-      with {:ok, image_config} <- select_firmware_image(),
-           {:ok, platform} <- select_platform(image_config),
-           {:ok, firmware_path} <- download_firmware(image_config, platform) do
-        print_manual_burn_instructions(firmware_path)
-      else
-        {:error, :cancelled} ->
-          Output.warning("\nOperation cancelled by user.\n")
-          System.halt(0)
+      {:error, :cancelled} ->
+        Output.warning("\nOperation cancelled by user.\n")
+        System.halt(0)
 
-        {:error, reason} ->
-          Output.error("\n✗ Error: #{reason}\n")
-          System.halt(1)
-      end
+      {:error, reason} ->
+        Output.error("\n✗ Error: #{reason}\n")
+        System.halt(1)
     end
   end
 
@@ -419,6 +450,15 @@ defmodule NervesBurner.CLI do
         :reset
       ])
     )
+  end
+
+  defp print_image_asset_instructions(firmware_path, image_config, platform) do
+    Output.success("\n✓ Firmware downloaded successfully!\n")
+
+    Output.section("Downloaded Image:\n")
+    Output.labeled("File location: ", "#{firmware_path}\n", :cyan)
+
+    print_next_steps(image_config, platform)
   end
 
   defp print_next_steps(image_config, platform) do

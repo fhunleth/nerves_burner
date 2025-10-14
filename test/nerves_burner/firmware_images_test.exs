@@ -18,7 +18,8 @@ defmodule NervesBurner.FirmwareImagesTest do
         assert is_map(config)
         assert Map.has_key?(config, :repo)
         assert Map.has_key?(config, :platforms)
-        assert Map.has_key?(config, :asset_pattern)
+        assert Map.has_key?(config, :fw_asset_pattern)
+        assert Map.has_key?(config, :image_asset_pattern)
         assert Map.has_key?(config, :description)
         assert Map.has_key?(config, :long_description)
         assert Map.has_key?(config, :url)
@@ -142,20 +143,18 @@ defmodule NervesBurner.FirmwareImagesTest do
 
     test "returns default next steps when no platform-specific steps exist" do
       config = %{
-        next_steps: %{
-          default: "Default steps here"
-        }
+        next_steps: "Default steps here"
       }
 
       assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == "Default steps here"
     end
 
-    test "returns platform-specific next steps when available" do
+    test "returns platform-specific next steps when available via overrides" do
       config = %{
-        next_steps: %{
-          default: "Default steps",
-          platforms: %{
-            "rpi" => "RPi specific steps"
+        next_steps: "Default steps",
+        overrides: %{
+          "rpi" => %{
+            next_steps: "RPi specific steps"
           }
         }
       }
@@ -163,12 +162,12 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == "RPi specific steps"
     end
 
-    test "falls back to default when platform-specific steps not found" do
+    test "falls back to default when platform-specific steps not found in overrides" do
       config = %{
-        next_steps: %{
-          default: "Default steps",
-          platforms: %{
-            "rpi" => "RPi specific steps"
+        next_steps: "Default steps",
+        overrides: %{
+          "rpi" => %{
+            next_steps: "RPi specific steps"
           }
         }
       }
@@ -181,9 +180,8 @@ defmodule NervesBurner.FirmwareImagesTest do
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
 
       assert Map.has_key?(config, :next_steps)
-      assert Map.has_key?(config.next_steps, :default)
-      assert is_binary(config.next_steps.default)
-      assert String.length(config.next_steps.default) > 0
+      assert is_binary(config.next_steps)
+      assert String.length(config.next_steps) > 0
     end
 
     test "Nerves Livebook has next steps defined" do
@@ -191,9 +189,8 @@ defmodule NervesBurner.FirmwareImagesTest do
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Nerves Livebook" end)
 
       assert Map.has_key?(config, :next_steps)
-      assert Map.has_key?(config.next_steps, :default)
-      assert is_binary(config.next_steps.default)
-      assert String.length(config.next_steps.default) > 0
+      assert is_binary(config.next_steps)
+      assert String.length(config.next_steps) > 0
     end
 
     test "next_steps for Circuits Quickstart returns proper steps for grisp2 platform" do
@@ -211,7 +208,7 @@ defmodule NervesBurner.FirmwareImagesTest do
 
       steps = NervesBurner.FirmwareImages.next_steps(config, "bbb")
       assert is_binary(steps)
-      assert steps == config.next_steps.default
+      assert steps == config.next_steps
     end
 
     test "next_steps for Nerves Livebook returns default steps" do
@@ -221,6 +218,44 @@ defmodule NervesBurner.FirmwareImagesTest do
       steps = NervesBurner.FirmwareImages.next_steps(config, "rpi4")
       assert is_binary(steps)
       assert steps =~ ~r/nerves-livebook\/nerves_livebook/i
+    end
+  end
+
+  describe "get_platform_override/2" do
+    test "returns nil when no overrides exist" do
+      config = %{repo: "test/test", platforms: ["rpi"]}
+      assert NervesBurner.FirmwareImages.get_platform_override(config, "rpi") == nil
+    end
+
+    test "returns nil when platform not in overrides" do
+      config = %{
+        overrides: %{
+          "rpi" => %{use_image_asset: true}
+        }
+      }
+
+      assert NervesBurner.FirmwareImages.get_platform_override(config, "bbb") == nil
+    end
+
+    test "returns override config when platform exists" do
+      config = %{
+        overrides: %{
+          "rpi" => %{use_image_asset: true, next_steps: "RPi steps"}
+        }
+      }
+
+      override = NervesBurner.FirmwareImages.get_platform_override(config, "rpi")
+      assert override == %{use_image_asset: true, next_steps: "RPi steps"}
+    end
+
+    test "grisp2 has override defined" do
+      images = NervesBurner.FirmwareImages.list()
+      {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
+
+      override = NervesBurner.FirmwareImages.get_platform_override(config, "grisp2")
+      assert override != nil
+      assert override.use_image_asset == true
+      assert is_binary(override.next_steps)
     end
   end
 end
