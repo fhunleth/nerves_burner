@@ -13,7 +13,9 @@ defmodule NervesBurner.CLI do
     with {:ok, image_config} <- select_firmware_image(),
          {:ok, platform} <- select_platform(image_config) do
       # Check if this platform uses image assets
-      platform_override = NervesBurner.FirmwareImages.get_platform_override(image_config, platform)
+      platform_override =
+        NervesBurner.FirmwareImages.get_platform_override(image_config, platform)
+
       uses_image_asset = platform_override && platform_override.use_image_asset
 
       if uses_image_asset do
@@ -44,7 +46,15 @@ defmodule NervesBurner.CLI do
 
             {:error, reason} ->
               IO.puts(
-                IO.ANSI.format([:red, :bright, "\n✗ Error: ", :reset, :red, "#{reason}\n", :reset])
+                IO.ANSI.format([
+                  :red,
+                  :bright,
+                  "\n✗ Error: ",
+                  :reset,
+                  :red,
+                  "#{reason}\n",
+                  :reset
+                ])
               )
 
               System.halt(1)
@@ -444,10 +454,10 @@ defmodule NervesBurner.CLI do
 
   defp print_image_asset_instructions(firmware_path, image_config, platform) do
     Output.success("\n✓ Firmware downloaded successfully!\n")
-    
+
     Output.section("Downloaded Image:\n")
     Output.labeled("File location: ", "#{firmware_path}\n", :cyan)
-    
+
     print_next_steps(image_config, platform)
   end
 
