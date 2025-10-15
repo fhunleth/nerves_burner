@@ -216,6 +216,35 @@ For instructions on testing the firmware, please visit:
 https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
 ```
 
+## Environment Variables
+
+### NERVES_BURNER_FORCE_UPDATE
+
+For testing the automatic update feature, you can force the version checker to always prompt for an update regardless of the current version:
+
+```bash
+export NERVES_BURNER_FORCE_UPDATE=1
+./nerves_burner
+```
+
+This will make the tool always offer to download and install the latest version from GitHub releases, even if you're already running the latest version. Useful for:
+- Testing the auto-update mechanism
+- Verifying the download and replacement process works
+- Ensuring the update UI is working correctly
+
+Set to `1`, `true`, or `yes` to enable. Unset or set to any other value to disable.
+
+### GITHUB_TOKEN / GITHUB_API_TOKEN
+
+If you encounter GitHub API rate limiting, you can provide an authentication token:
+
+```bash
+export GITHUB_TOKEN=your_github_personal_access_token
+./nerves_burner
+```
+
+The token only needs public repository read access. Create one at: https://github.com/settings/tokens
+
 ## Safety Features
 
 - Requires explicit "yes" confirmation before burning

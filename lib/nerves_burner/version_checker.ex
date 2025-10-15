@@ -36,9 +36,12 @@ defmodule NervesBurner.VersionChecker do
             new_version = normalize_version(tag_name)
             curr_version = normalize_version(current_version())
 
-            case Version.compare(new_version, curr_version) do
-              :gt ->
-                # Find the nerves_burner executable in assets
+            # Check if NERVES_BURNER_FORCE_UPDATE is set to skip version comparison
+            force_update = System.get_env("NERVES_BURNER_FORCE_UPDATE") in ["1", "true", "yes"]
+
+            cond do
+              force_update ->
+                # Force update regardless of version
                 case find_executable_asset(assets) do
                   {:ok, download_url} ->
                     {:update_available, tag_name, download_url}
@@ -47,7 +50,17 @@ defmodule NervesBurner.VersionChecker do
                     {:error, "No executable found in release assets"}
                 end
 
-              _ ->
+              Version.compare(new_version, curr_version) == :gt ->
+                # Normal update check - newer version available
+                case find_executable_asset(assets) do
+                  {:ok, download_url} ->
+                    {:update_available, tag_name, download_url}
+
+                  :not_found ->
+                    {:error, "No executable found in release assets"}
+                end
+
+              true ->
                 :up_to_date
             end
 
