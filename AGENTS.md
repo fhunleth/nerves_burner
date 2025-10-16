@@ -256,16 +256,6 @@ mix test
 mix escript.build
 ```
 
-### Quick Build Script
-
-The `install.sh` script provides a quick way to build and install:
-
-```bash
-./install.sh
-```
-
-This checks for dependencies and builds the executable.
-
 ### Project Configuration
 
 **mix.exs**:
