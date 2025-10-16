@@ -2,6 +2,10 @@
 
 A user-friendly tool for downloading and writing pre-built Nerves firmware images to MicroSD cards.
 
+## Demo
+
+![Nerves Burner Demo](demo.gif)
+
 ## Supported firmwares
 
 * [Circuits Quickstart](https://github.com/elixir-circuits/circuits_quickstart) - Simple examples for GPIO, I2C, SPI and more

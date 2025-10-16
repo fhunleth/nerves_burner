@@ -1,0 +1,65 @@
+name: Generate Demo GIF
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'demo.tape'
+      - 'mock_nerves_burner.sh'
+      - '.github/workflows/demo.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'demo.tape'
+      - 'mock_nerves_burner.sh'
+      - '.github/workflows/demo.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-gif:
+    name: Generate Demo GIF
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install VHS
+      run: |
+        wget https://github.com/charmbracelet/vhs/releases/download/v0.7.2/vhs_0.7.2_amd64.deb
+        sudo dpkg -i vhs_0.7.2_amd64.deb
+        # Install ttyd for VHS (required dependency)
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+    
+    - name: Make mock script executable
+      run: chmod +x mock_nerves_burner.sh
+    
+    - name: Generate GIF with VHS
+      run: vhs demo.tape
+    
+    - name: Verify GIF was created
+      run: |
+        if [ ! -f demo.gif ]; then
+          echo "Error: demo.gif was not created"
+          exit 1
+        fi
+        echo "✓ demo.gif created successfully"
+        ls -lh demo.gif
+    
+    - name: Upload GIF as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: demo-gif
+        path: demo.gif
+    
+    # Commit the GIF back to the repository on main branch
+    - name: Commit GIF to repository
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add demo.gif
+        git diff --staged --quiet || git commit -m "Update demo.gif [skip ci]"
+        git push
