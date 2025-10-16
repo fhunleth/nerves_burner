@@ -19,6 +19,16 @@ Runs when a version tag is pushed (e.g., `v1.0.0`):
 - Creates a GitHub Release (if it doesn't exist)
 - Uploads the `nerves_burner` executable as a release asset
 
+### Demo GIF Workflow (`demo.yml`)
+
+Runs when demo-related files are changed or manually triggered:
+- Generates a demo GIF using [VHS](https://github.com/charmbracelet/vhs)
+- Uses `mock_nerves_burner.sh` to simulate the CLI interaction
+- Uploads the GIF as an artifact for preview
+- Commits the GIF back to the repository on the `main` branch
+
+The demo GIF is displayed in the README to help users understand how nerves_burner works before installing it.
+
 ## Creating a Release
 
 To create a new release:
