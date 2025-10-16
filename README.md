@@ -1,41 +1,28 @@
 # Nerves Burner
 
-A user-friendly Elixir script for downloading and burning pre-built Nerves firmware images to MicroSD cards.
+A user-friendly tool for downloading and burning pre-built Nerves firmware images to MicroSD cards.
 
 ## Features
 
-- **Automatic version checking**: Checks for updates at startup and offers to download new versions
+- **Automatic version checking** and self-updating
 - Interactive menu-driven interface
-- Support for multiple firmware images:
-  - Circuits Quickstart
-  - Nerves Livebook
-- Support for multiple platforms:
-  - Raspberry Pi (rpi, rpi0, rpi0_2, rpi2, rpi3, rpi3a, rpi4, rpi5)
-  - BeagleBone Black (bbb)
-  - OSD32MP1 (osd32mp1)
-  - NPI i.MX6 ULL (npi_imx6ull)
-  - GRiSP 2 (grisp2)
-  - MangoPi MQ Pro (mangopi_mq_pro)
-- Automatic firmware download from GitHub releases with progress indication
-- **Intelligent firmware caching** to avoid repeated downloads:
-  - Caches firmware in OS-appropriate directories
-  - Verifies cached files using size and SHA256 hash
-  - Automatically re-downloads if cache is invalid
-- **Smart fallback mode**: Works with or without fwup
-  - With fwup: Automatic MicroSD card detection and burning
-  - Without fwup: Downloads alternative formats and provides manual burning instructions
+- Support for multiple firmware images (Circuits Quickstart, Nerves Livebook)
+- Support for Raspberry Pi, BeagleBone, and other platforms
+- Automatic firmware download with progress indication
+- Intelligent firmware caching to save bandwidth
+- Works with or without fwup (automatic burning or manual instructions)
 - Safe device selection with confirmation prompts
-- Optional WiFi credentials configuration (for supported firmware images)
-- **Next steps guidance**: Customizable post-burn instructions for each firmware and board
+- Optional WiFi credentials configuration
+- Post-burn guidance and next steps
 
 ## Installation
 
-### Option 1: Download Pre-built Executable (Recommended)
+### Download Pre-built Executable (Recommended)
 
-Download the latest pre-built `nerves_burner` executable from the [Releases](https://github.com/fhunleth/nerves_burner/releases) page:
+Download the latest `nerves_burner` executable from the [Releases](https://github.com/fhunleth/nerves_burner/releases) page:
 
 ```bash
-# Download the latest release (replace VERSION with the actual version)
+# Download the latest release (replace VERSION with actual version)
 curl -L -o nerves_burner https://github.com/fhunleth/nerves_burner/releases/download/vVERSION/nerves_burner
 chmod +x nerves_burner
 
@@ -43,245 +30,117 @@ chmod +x nerves_burner
 ./nerves_burner
 ```
 
-You only need **fwup** installed to use the pre-built executable. No Elixir/Erlang installation required!
+**No Elixir/Erlang installation required!**
 
-### Option 2: Build from Source
+### Prerequisites
 
-If you prefer to build from source, see the [Building](#building) section below.
+**fwup** (Optional but recommended for automatic burning):
+- Installation: https://github.com/fwup-home/fwup#installing
+- Ubuntu/Debian: Download .deb package from releases
+- macOS: `brew install fwup`
+- Windows: Download installer from releases
+- **Note**: Without fwup, you'll get manual burning instructions
 
-## Prerequisites
-
-### For Pre-built Executable
-
-1. **fwup** (Optional but recommended): Install the fwup utility for automatic firmware burning
-   - Installation instructions: https://github.com/fwup-home/fwup#installing
-   - On Ubuntu/Debian: Download the .deb package from releases
-   - On macOS: `brew install fwup`
-   - On Windows: Download the installer from releases
-   - **Note**: If fwup is not installed, the tool will download alternative firmware formats (zip/img.gz) and provide instructions for manual burning using tools like Etcher or dd.
-
-2. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` or `GITHUB_API_TOKEN` environment variable:
-   ```bash
-   export GITHUB_TOKEN=your_github_personal_access_token
-   # or
-   export GITHUB_API_TOKEN=your_github_personal_access_token
-   ```
-   The token only needs public repository read access. Create one at: https://github.com/settings/tokens
-
-### For Building from Source
-
-1. **Elixir and Erlang**: Install Elixir (version 1.14 or later) and Erlang/OTP
-   - On Ubuntu/Debian: `sudo apt install erlang elixir`
-   - On macOS: `brew install elixir`
-   - On Windows: Download from [Elixir's website](https://elixir-lang.org/install.html)
-
-2. **fwup**: Install the fwup utility for burning firmware
-   - Installation instructions: https://github.com/fwup-home/fwup#installing
-   - On Ubuntu/Debian: Download the .deb package from releases
-   - On macOS: `brew install fwup`
-   - On Windows: Download the installer from releases
-
-3. **GitHub Token** (Optional): If you encounter rate limiting errors from GitHub, set the `GITHUB_TOKEN` or `GITHUB_API_TOKEN` environment variable:
-   ```bash
-   export GITHUB_TOKEN=your_github_personal_access_token
-   # or
-   export GITHUB_API_TOKEN=your_github_personal_access_token
-   ```
-   The token only needs public repository read access. Create one at: https://github.com/settings/tokens
-
-## Building
-
-### Quick Start
-
-The easiest way to build is using the installation script:
-
+**GitHub Token** (Optional, for rate limiting):
 ```bash
-./install.sh
+export GITHUB_TOKEN=your_github_personal_access_token
 ```
-
-This will:
-- Check for Elixir and fwup
-- Build the executable
-- Show instructions for adding to PATH
-
-### Manual Build
-
-Alternatively, build manually:
-
-```bash
-# Build the executable
-mix escript.build
-```
-
-This creates an executable script named `nerves_burner` in the project root.
+Create token at: https://github.com/settings/tokens (needs public repo read access only)
 
 ## Usage
 
-Simply run the executable:
+Run the executable:
 
 ```bash
 ./nerves_burner
 ```
 
-The script will guide you through:
+### With fwup (automatic burning):
 
-### With fwup installed (recommended):
+1. Select firmware image
+2. Select your hardware platform
+3. Configure WiFi (optional)
+4. Download firmware
+5. Select MicroSD card
+6. Confirm (type "yes")
+7. Burn firmware
 
-1. **Firmware Selection**: Choose from available firmware images
-2. **Platform Selection**: Select your target hardware platform
-3. **WiFi Configuration** (Optional): Set WiFi SSID and passphrase for supported firmware
-4. **Download**: The firmware will be downloaded from GitHub releases
-5. **Device Selection**: Select the MicroSD card to burn (with rescan option)
-6. **Confirmation**: Confirm the operation (requires typing "yes")
-7. **Burning**: The firmware is written to the card with progress indication
+### Without fwup (manual burning):
 
-### Without fwup:
-
-1. **Firmware Selection**: Choose from available firmware images
-2. **Platform Selection**: Select your target hardware platform
-3. **Download**: An alternative firmware format (zip or img.gz) will be downloaded
-4. **Instructions**: The tool will display the downloaded file path and provide instructions for manual burning using:
-   - **Etcher** (recommended - cross-platform GUI tool)
+1. Select firmware and platform
+2. Download firmware (alternative format)
+3. Follow provided instructions for burning with:
+   - **Etcher** (recommended - GUI, cross-platform)
    - **dd** (Linux/macOS command-line)
    - **Win32 Disk Imager** (Windows)
 
-## Example Session
+## Example
 
 ```
-=== Nerves Firmware Burner ===
+$ ./nerves_burner
 
 Select a firmware image:
-
   1. Circuits Quickstart
-     Simple examples for GPIO, I2C, SPI and more
   2. Nerves Livebook
-     Interactive notebooks for learning Elixir and Nerves
-  ? Learn more about a firmware image
-
-Enter your choice (1-2 or ?): 1
-
-Select a platform:
-
-  1. Raspberry Pi Model B (rpi)
-  2. Raspberry Pi Zero (rpi0)
-  3. Raspberry Pi Zero 2W in 64-bit mode (rpi0_2)
-  4. Raspberry Pi 2 (rpi2)
-  5. Raspberry Pi 3 (rpi3)
-  6. Raspberry Pi Zero 2W or 3A in 32-bit mode (rpi3a)
-  7. Raspberry Pi 4 (rpi4)
-  8. Raspberry Pi 5 (rpi5)
-  9. Beaglebone Black and other Beaglebone variants (bbb)
-  10. OSD32MP1 (osd32mp1)
-  11. NPI i.MX6 ULL (npi_imx6ull)
-  12. GRiSP 2 (grisp2)
-  13. MangoPi MQ Pro (mangopi_mq_pro)
-
-Enter your choice (1-7): 4
-
-Would you like to configure WiFi credentials?
-(This is supported by Circuits Quickstart and Nerves Livebook firmware)
-
-Configure WiFi? (y/n): y
-
-Enter WiFi SSID: MyNetwork
-Enter WiFi passphrase: MyPassword123
-
-Downloading firmware...
-Downloading from: https://github.com/...
-✓ Download complete: /tmp/firmware_rpi5_1234567890.fw
-
-Scanning for MicroSD cards...
-
-Available devices:
-
-  1. /dev/sdb (15.93 GB)
-  2. Rescan
 
 Enter your choice (1-2): 1
 
+Select a platform:
+  1. Raspberry Pi 4 (rpi4)
+  ...
+
+Enter your choice: 1
+
+Configure WiFi? (y/n): y
+Enter WiFi SSID: MyNetwork
+Enter WiFi passphrase: ********
+
+Downloading firmware...
+✓ Download complete
+
+Scanning for MicroSD cards...
+Available devices:
+  1. /dev/sdb (15.93 GB)
+
+Enter your choice: 1
+
 ⚠️  WARNING: All data on /dev/sdb will be erased!
-Are you sure you want to continue? (yes/no): yes
+Are you sure? (yes/no): yes
 
-Burning firmware to /dev/sdb...
-This may take several minutes. Please do not remove the card.
-
-[Progress output from fwup...]
-
+Burning firmware...
 ✓ Firmware burned successfully!
-You can now safely remove the MicroSD card.
 
 📋 Next Steps:
-
-For instructions on testing the firmware, please visit:
-https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
+[Instructions displayed here]
 ```
 
 ## Environment Variables
 
-### NERVES_BURNER_FORCE_UPDATE
-
-For testing the automatic update feature, you can force the version checker to always prompt for an update regardless of the current version:
-
-```bash
-export NERVES_BURNER_FORCE_UPDATE=1
-./nerves_burner
-```
-
-This will make the tool always offer to download and install the latest version from GitHub releases, even if you're already running the latest version. Useful for:
-- Testing the auto-update mechanism
-- Verifying the download and replacement process works
-- Ensuring the update UI is working correctly
-
-Set to `1`, `true`, or `yes` to enable. Unset or set to any other value to disable.
-
-### GITHUB_TOKEN / GITHUB_API_TOKEN
-
-If you encounter GitHub API rate limiting, you can provide an authentication token:
-
+**GITHUB_TOKEN / GITHUB_API_TOKEN**: Avoid rate limiting
 ```bash
 export GITHUB_TOKEN=your_github_personal_access_token
-./nerves_burner
 ```
 
-The token only needs public repository read access. Create one at: https://github.com/settings/tokens
+**NERVES_BURNER_FORCE_UPDATE**: Force update check (for testing)
+```bash
+export NERVES_BURNER_FORCE_UPDATE=1
+```
 
 ## Safety Features
 
-- Requires explicit "yes" confirmation before burning
-- Shows device size to help identify the correct device
-- Provides option to rescan devices
+- Explicit "yes" confirmation required before burning
+- Device size display for correct identification
+- Rescan option for device detection
 - Clear warnings about data loss
 
 ## Firmware Caching
 
-To improve performance and save bandwidth, nerves_burner caches downloaded firmware files in OS-appropriate cache directories following platform conventions:
-
-- **Linux**: `~/.cache/nerves_burner` (respects `$XDG_CACHE_HOME` if set)
+Downloaded firmware is cached in OS-appropriate directories:
+- **Linux**: `~/.cache/nerves_burner`
 - **macOS**: `~/Library/Caches/nerves_burner`
-- **Windows**: User's local app data cache directory
+- **Windows**: Local app data cache
 
-Cached files are verified before use by checking:
-1. File size matches the expected size from GitHub
-2. SHA256 hash matches the expected hash:
-   - If the release includes a `SHA256SUMS` file, the hash is extracted from it and used for verification
-   - Otherwise, the hash is computed locally after the first download
-
-If a cached file fails verification, it is automatically re-downloaded. This ensures you always get the correct firmware while avoiding unnecessary downloads when burning multiple cards with the same firmware.
-
-The cache location is determined automatically using Erlang's `:filename.basedir/2` function which follows OS-specific standards.
-
-## Fallback Mode (Without fwup)
-
-If fwup is not installed on your system, Nerves Burner will automatically:
-
-1. Download an alternative firmware format (zip or img.gz instead of .fw)
-2. Display the downloaded file location
-3. Provide detailed instructions for burning the image manually using popular tools:
-   - **Etcher** - User-friendly cross-platform GUI tool (recommended for beginners)
-   - **dd** - Command-line tool for Linux/macOS users
-   - **Win32 Disk Imager** - GUI tool for Windows users
-
-This fallback mode ensures you can still download and prepare firmware even if fwup is not available on your system.
+Cached files are verified with SHA256 hashes before use. Invalid files are automatically re-downloaded.
 
 ## License
 
