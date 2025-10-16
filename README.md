@@ -1,51 +1,37 @@
 # Nerves Burner
 
-A user-friendly tool for downloading and burning pre-built Nerves firmware images to MicroSD cards.
+A user-friendly tool for downloading and writing pre-built Nerves firmware images to MicroSD cards.
 
-## Features
+## Supported firmwares
 
-- **Automatic version checking** and self-updating
-- Interactive menu-driven interface
-- Support for multiple firmware images (Circuits Quickstart, Nerves Livebook)
-- Support for Raspberry Pi, BeagleBone, and other platforms
-- Automatic firmware download with progress indication
-- Intelligent firmware caching to save bandwidth
-- Works with or without fwup (automatic burning or manual instructions)
-- Safe device selection with confirmation prompts
-- Optional WiFi credentials configuration
-- Post-burn guidance and next steps
+* [Circuits Quickstart](https://github.com/elixir-circuits/circuits_quickstart) - Simple examples for GPIO, I2C, SPI and more
+* [Nerves Livebook](https://github.com/nerves-livebook/nerves_livebook) - Interactive notebooks for learning Elixir and Nerves
 
 ## Installation
 
-### Download Pre-built Executable (Recommended)
+### Install Elixir
+
+Please refer to the [Elixir installation docs](https://elixir-lang.org/install.html).
+
+### Install fwup (optional)
+
+Nerves Burner uses [fwup](https://github.com/fwup-home/fwup) to unpack and write
+Nerves firmware images to MicroSD cards. This is convenient but not required.
+If `fwup` is not installed, Nerves Burner will provide step-by-step instructions for using alternative tools such as `dd` (on Linux/macOS) or [Etcher](https://www.balena.io/etcher/) (cross-platform) to write the firmware image to your MicroSD card. You do not need to install `fwup` if you prefer to use these tools.
+For more information, see the [Etcher documentation](https://github.com/balena-io/etcher) or refer to your operating system's instructions for using `dd`.
+
+Installation instructions are at
+[github.com/fwup-home/fwup](https://github.com/fwup-home/fwup#installing). If
+you're using MacOS, just run `brew install fwup`.
+
+### Download Pre-built Executable
 
 Download the latest `nerves_burner` executable from the [Releases](https://github.com/fhunleth/nerves_burner/releases) page:
 
 ```bash
-# Download the latest release (replace VERSION with actual version)
-curl -L -o nerves_burner https://github.com/fhunleth/nerves_burner/releases/download/vVERSION/nerves_burner
+curl -L -o nerves_burner https://github.com/fhunleth/nerves_burner/releases/latest/download/nerves_burner
 chmod +x nerves_burner
-
-# Run it
-./nerves_burner
 ```
-
-**No Elixir/Erlang installation required!**
-
-### Prerequisites
-
-**fwup** (Optional but recommended for automatic burning):
-- Installation: https://github.com/fwup-home/fwup#installing
-- Ubuntu/Debian: Download .deb package from releases
-- macOS: `brew install fwup`
-- Windows: Download installer from releases
-- **Note**: Without fwup, you'll get manual burning instructions
-
-**GitHub Token** (Optional, for rate limiting):
-```bash
-export GITHUB_TOKEN=your_github_personal_access_token
-```
-Create token at: https://github.com/settings/tokens (needs public repo read access only)
 
 ## Usage
 
@@ -55,24 +41,14 @@ Run the executable:
 ./nerves_burner
 ```
 
-### With fwup (automatic burning):
+GitHub hosts the firmware images and sometimes rate limits downloads. If you're
+affected, let `nerves_burner` know your personal access token and it will log in
+for the download:
 
-1. Select firmware image
-2. Select your hardware platform
-3. Configure WiFi (optional)
-4. Download firmware
-5. Select MicroSD card
-6. Confirm (type "yes")
-7. Burn firmware
-
-### Without fwup (manual burning):
-
-1. Select firmware and platform
-2. Download firmware (alternative format)
-3. Follow provided instructions for burning with:
-   - **Etcher** (recommended - GUI, cross-platform)
-   - **dd** (Linux/macOS command-line)
-   - **Win32 Disk Imager** (Windows)
+```bash
+export GITHUB_TOKEN=your_github_personal_access_token
+```
+Create token at: https://github.com/settings/tokens (needs public repo read access only)
 
 ## Example
 
@@ -126,26 +102,20 @@ export GITHUB_TOKEN=your_github_personal_access_token
 export NERVES_BURNER_FORCE_UPDATE=1
 ```
 
-## Safety Features
-
-- Explicit "yes" confirmation required before burning
-- Device size display for correct identification
-- Rescan option for device detection
-- Clear warnings about data loss
-
 ## Firmware Caching
 
 Downloaded firmware is cached in OS-appropriate directories:
+
 - **Linux**: `~/.cache/nerves_burner`
 - **macOS**: `~/Library/Caches/nerves_burner`
 - **Windows**: Local app data cache
 
-Cached files are verified with SHA256 hashes before use. Invalid files are automatically re-downloaded.
-
-## License
-
-MIT
-
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome!
+
+If you maintain Nerves firmware and would like to have it included in
+`nerves_burner`, please post an issue or send a PR. We'd like to include
+maintained community projects as well so that it's easy to discover and try out
+interesting Nerves projects.
+
