@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule NervesBurner.Downloader do
   @moduledoc """
   Handles downloading firmware from GitHub releases.

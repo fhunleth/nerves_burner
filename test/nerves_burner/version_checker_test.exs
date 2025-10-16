@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule NervesBurner.VersionCheckerTest do
   use ExUnit.Case
 

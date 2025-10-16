@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule NervesBurner.Fwup do
   @moduledoc """
   Interface to the fwup tool for burning firmware to MicroSD cards.

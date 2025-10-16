@@ -1,3 +1,8 @@
+<!--
+  SPDX-License-Identifier: CC0-1.0
+  SPDX-FileCopyrightText: None
+-->
+
 # AGENTS.md - Technical Documentation for AI Agents
 
 This document provides comprehensive technical information about the Nerves Burner project for AI agents working on code changes, bug fixes, and feature additions.

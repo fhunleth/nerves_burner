@@ -1,3 +1,8 @@
+<!--
+  SPDX-License-Identifier: CC0-1.0
+  SPDX-FileCopyrightText: None
+-->
+
 # Nerves Burner
 
 A user-friendly tool for downloading and writing pre-built Nerves firmware images to MicroSD cards.

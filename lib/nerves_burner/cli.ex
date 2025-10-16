@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule NervesBurner.CLI do
   @moduledoc """
   Main CLI entry point for the Nerves Burner application.

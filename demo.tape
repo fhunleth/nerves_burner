@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 # VHS documentation: https://github.com/charmbracelet/vhs
 #
 # This script creates the Nerves Burner demo video
