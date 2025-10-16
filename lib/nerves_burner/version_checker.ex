@@ -9,8 +9,10 @@ defmodule NervesBurner.VersionChecker do
 
   @doc """
   Checks if a new version is available on GitHub and prompts user to download it.
-  Returns :ok if no update available, user declined, or update was successful.
-  Prints warning and continues on any errors.
+
+  Exits if update succeeds so user can rerun.
+
+  Errors are printed as warnings and the upgrade is skipped.
   """
   def check_and_prompt_update do
     case check_for_update() do
@@ -123,24 +125,20 @@ defmodule NervesBurner.VersionChecker do
           :ok ->
             Output.success("✓ Download complete!")
             IO.puts("")
-            
+
             # Try to replace the existing version
             case replace_current_executable(temp_path) do
               :ok ->
                 Output.success("✓ Successfully replaced the current version!")
-                Output.info("The new version is now active. You can continue using this tool.")
-                IO.puts("")
-                :ok
-              
+                Output.info("Run nerves_burner again to use the new version.")
+                System.halt(0)
+
               {:error, reason} ->
                 # Fall back to manual instructions
                 Output.warning("⚠ Could not replace current version: #{reason}")
                 Output.info("New version downloaded to: #{temp_path}")
-                Output.info("Please replace the existing version manually:")
-                IO.puts("")
-                IO.puts("  #{temp_path}")
-                IO.puts("")
-                :ok
+                Output.info("Please replace the existing version manually and rerun.")
+                System.halt(0)
             end
 
           {:error, reason} ->
@@ -164,11 +162,11 @@ defmodule NervesBurner.VersionChecker do
         case File.cp(new_path, current_path) do
           :ok ->
             :ok
-          
+
           {:error, reason} ->
             {:error, inspect(reason)}
         end
-      
+
       {:error, reason} ->
         {:error, reason}
     end
