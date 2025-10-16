@@ -8,6 +8,9 @@ defmodule NervesBurner.CLI do
   def main(_args) do
     print_banner()
 
+    # Check for version updates
+    NervesBurner.VersionChecker.check_and_prompt_update()
+
     fwup_available = NervesBurner.Fwup.available?()
 
     with {:ok, image_config} <- select_firmware_image(),
@@ -91,7 +94,9 @@ defmodule NervesBurner.CLI do
     \e[38;5;24m███▌    \e[38;5;74m▀▀████\e[0m
     """
 
+    version = get_version()
     IO.puts(["\n", logo])
+    IO.puts(IO.ANSI.format([:faint, "Nerves Burner v#{version}\n", :reset]))
   end
 
   defp select_firmware_image do
@@ -470,5 +475,11 @@ defmodule NervesBurner.CLI do
         Output.section("\n📋 Next Steps:\n")
         Output.info(String.trim(next_steps) <> "\n")
     end
+  end
+
+  defp get_version do
+    :nerves_burner
+    |> Application.spec(:vsn)
+    |> to_string()
   end
 end
