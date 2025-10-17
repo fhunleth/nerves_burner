@@ -1,15 +1,14 @@
 # VHS documentation: https://github.com/charmbracelet/vhs
 #
-# This script demonstrates the Nerves Burner interactive CLI
-# 
-# To use this script:
-# 1. Build nerves_burner: mix escript.build
-# 2. Run VHS: vhs demo.tape
+# This script creates the Nerves Burner demo video
 #
-# Note: This will actually run nerves_burner, so you'll need:
-# - Elixir installed
-# - fwup installed (optional, but recommended)
-# - Network access for downloading firmware
+# To use this script:
+# 1. rm $HOME/Library/Caches/nerves_burner/*
+# 2. Insert one MicroSD card that's ok to erase
+# 3. Run 'fwup -D' to see that it's detected
+# 4. mix escript.build
+# 5. vhs demo.tape
+#
 
 # Output settings
 Output demo.gif
@@ -26,52 +25,56 @@ Set TypingSpeed 100ms
 
 # Show the banner and initial menu
 Type "./nerves_burner"
-Sleep 500ms
 Enter
-Sleep 3s
 
 # Select firmware image - Circuits Quickstart (option 1)
+Wait /Enter your choice.*/
+Sleep 4s
 Type "1"
 Sleep 300ms
 Enter
-Sleep 2s
 
-# Select platform - Raspberry Pi 4 (option 1)
-Type "1"
+# Select platform - Raspberry Pi 5 (option 8)
+Wait /Enter your choice.*/
+Sleep 1s
+Type "8"
 Sleep 300ms
 Enter
-Sleep 2s
 
 # WiFi configuration - yes
+Wait /Configure WiFi.*/
+Sleep 1s
 Type "y"
 Sleep 300ms
 Enter
 Sleep 1.5s
 
 # Enter WiFi SSID
-Type "MyHomeNetwork"
+Type "MyNetwork"
 Sleep 300ms
 Enter
 Sleep 1.5s
 
-# Enter WiFi passphrase (hidden)
-Type "mypassword123"
+# Enter WiFi passphrase
+Type "Password123"
 Sleep 300ms
 Enter
-Sleep 5s
 
 # Note: The download will actually happen, so timing may vary
-# Select device - option 1 (adjust based on your available devices)
+# Select device - option 1 (hope)
+Wait@30s /Enter your choice.*/
+Sleep 1s
 Type "1"
 Sleep 300ms
 Enter
-Sleep 2s
 
 # Confirm with 'yes'
+Wait /Are you sure.*/
+Sleep 1s
 Type "yes"
 Sleep 300ms
 Enter
-Sleep 10s
+Wait@30s
 
 # Wait to show final state
-Sleep 3s
+Sleep 10s

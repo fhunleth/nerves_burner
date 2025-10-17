@@ -7,33 +7,11 @@
 # The directory Mix downloads your dependencies sources to.
 /deps/
 
-# Where third-party dependencies like ExDoc output generated docs.
-/doc/
-
-# Ignore .fetch files in case you like to edit your project deps locally.
-/.fetch
-
 # If the VM crashes, it generates a dump, let's ignore it too.
 erl_crash.dump
-
-# Also ignore archive artifacts (built via "mix archive.build").
-*.ez
-
-# Ignore package tarball (built via "mix hex.build").
-nerves_burner-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
 
-# Firmware files
-*.fw
-
 # Escript executable
 /nerves_burner
-
-# Demo scripts
-demo_colors.exs
-demo_new_logo.exs
-
-# Generated demo GIF (create manually with: vhs demo.tape)
-demo.gif
