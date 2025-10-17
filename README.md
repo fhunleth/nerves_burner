@@ -2,6 +2,8 @@
 
 A user-friendly tool for downloading and writing pre-built Nerves firmware images to MicroSD cards.
 
+![Nerves Burner Demo](demo.gif)
+
 ## Supported firmwares
 
 * [Circuits Quickstart](https://github.com/elixir-circuits/circuits_quickstart) - Simple examples for GPIO, I2C, SPI and more
@@ -49,46 +51,6 @@ for the download:
 export GITHUB_TOKEN=your_github_personal_access_token
 ```
 Create token at: https://github.com/settings/tokens (needs public repo read access only)
-
-## Example
-
-```
-$ ./nerves_burner
-
-Select a firmware image:
-  1. Circuits Quickstart
-  2. Nerves Livebook
-
-Enter your choice (1-2): 1
-
-Select a platform:
-  1. Raspberry Pi 4 (rpi4)
-  ...
-
-Enter your choice: 1
-
-Configure WiFi? (y/n): y
-Enter WiFi SSID: MyNetwork
-Enter WiFi passphrase: ********
-
-Downloading firmware...
-✓ Download complete
-
-Scanning for MicroSD cards...
-Available devices:
-  1. /dev/sdb (15.93 GB)
-
-Enter your choice: 1
-
-⚠️  WARNING: All data on /dev/sdb will be erased!
-Are you sure? (yes/no): yes
-
-Burning firmware...
-✓ Firmware burned successfully!
-
-📋 Next Steps:
-[Instructions displayed here]
-```
 
 ## Environment Variables
 
