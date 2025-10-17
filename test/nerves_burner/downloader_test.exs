@@ -1,5 +1,6 @@
 defmodule NervesBurner.DownloaderTest do
   use ExUnit.Case
+  import ExUnit.CaptureIO
 
   # We can't fully test the downloader without making real HTTP requests,
   # but we can test the helper functions
@@ -204,8 +205,6 @@ defmodule NervesBurner.DownloaderTest do
       }
 
       # Capture IO to verify warning is shown
-      import ExUnit.CaptureIO
-
       result =
         capture_io(fn ->
           result = NervesBurner.Downloader.check_cached_file(test_file, asset_info)
