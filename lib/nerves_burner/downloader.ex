@@ -328,9 +328,36 @@ defmodule NervesBurner.Downloader do
         File.rm(cache_path)
         :not_found
       else
-        case verify_file(cache_path, asset_info) do
-          :ok -> :valid
-          {:error, _} -> :invalid
+        # Try to fetch the hash from GitHub to check if firmware has been updated
+        case fetch_hash_from_github(asset_info) do
+          {:ok, server_hash} ->
+            # We got the server hash, compare it with cached file
+            case verify_file_with_server_hash(cache_path, asset_info, server_hash) do
+              :ok ->
+                :valid
+
+              {:error, :hash_mismatch} ->
+                IO.puts("Server has a different firmware version, re-downloading...")
+                File.rm(cache_path)
+                File.rm(hash_file)
+                :not_found
+
+              {:error, _reason} ->
+                :invalid
+            end
+
+          {:error, reason} ->
+            # Couldn't fetch server hash, fall back to local verification with warning
+            Output.warning(
+              "⚠ Warning: Could not verify firmware hash with server (#{format_error_reason(reason)})"
+            )
+
+            IO.puts("Using cached firmware with local hash verification only.")
+
+            case verify_file(cache_path, asset_info) do
+              :ok -> :valid
+              {:error, _} -> :invalid
+            end
         end
       end
     else
@@ -419,7 +446,8 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp fetch_and_store_hash_from_github(file_path, asset_info) do
+  # Fetch hash from GitHub without storing it (for verification of cached files)
+  defp fetch_hash_from_github(asset_info) do
     case asset_info.sha256sums_url do
       nil ->
         {:error, :no_hash_available}
@@ -453,17 +481,54 @@ defmodule NervesBurner.Downloader do
               hash ->
                 # Verify it's a valid SHA256 hash (64 hex characters)
                 if String.match?(hash, ~r/^[0-9a-f]{64}$/) do
-                  hash_file = file_path <> ".sha256"
-                  File.write(hash_file, hash)
-                  :ok
+                  {:ok, hash}
                 else
                   {:error, :invalid_hash_format}
                 end
             end
 
-          _ ->
-            {:error, :download_failed}
+          {:ok, %{status: status}} ->
+            {:error, {:http_error, status}}
+
+          {:error, reason} ->
+            {:error, {:download_failed, reason}}
         end
+    end
+  end
+
+  # Verify a file against a server-provided hash
+  defp verify_file_with_server_hash(file_path, asset_info, server_hash) do
+    # First verify size if available
+    with :ok <- verify_size(file_path, asset_info.size) do
+      # Compute the hash of the cached file
+      computed_hash = compute_sha256(file_path)
+
+      if computed_hash == server_hash do
+        IO.puts("✓ Hash verified with server")
+        :ok
+      else
+        {:error, :hash_mismatch}
+      end
+    end
+  end
+
+  # Format error reasons for user-friendly output
+  defp format_error_reason(:no_hash_available), do: "SHA256SUMS not available"
+  defp format_error_reason(:hash_not_found_in_sums_file), do: "hash not found in SHA256SUMS"
+  defp format_error_reason(:invalid_hash_format), do: "invalid hash format"
+  defp format_error_reason({:http_error, status}), do: "HTTP #{status}"
+  defp format_error_reason({:download_failed, _reason}), do: "download failed"
+  defp format_error_reason(_), do: "unknown error"
+
+  defp fetch_and_store_hash_from_github(file_path, asset_info) do
+    case fetch_hash_from_github(asset_info) do
+      {:ok, hash} ->
+        hash_file = file_path <> ".sha256"
+        File.write(hash_file, hash)
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

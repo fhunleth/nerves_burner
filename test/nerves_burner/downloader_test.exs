@@ -1,5 +1,6 @@
 defmodule NervesBurner.DownloaderTest do
   use ExUnit.Case
+  import ExUnit.CaptureIO
 
   # We can't fully test the downloader without making real HTTP requests,
   # but we can test the helper functions
@@ -126,7 +127,13 @@ defmodule NervesBurner.DownloaderTest do
       # Store hash first (simulating a previous download)
       NervesBurner.Downloader.store_hash(test_file)
 
-      asset_info = %{url: "http://example.com", name: "test.fw", size: size}
+      asset_info = %{
+        url: "http://example.com",
+        name: "test.fw",
+        size: size,
+        sha256sums_url: nil
+      }
+
       result = NervesBurner.Downloader.check_cached_file(test_file, asset_info)
 
       assert result == :valid
@@ -137,7 +144,13 @@ defmodule NervesBurner.DownloaderTest do
       content_size: size
     } do
       # File exists but no hash file
-      asset_info = %{url: "http://example.com", name: "test.fw", size: size}
+      asset_info = %{
+        url: "http://example.com",
+        name: "test.fw",
+        size: size,
+        sha256sums_url: nil
+      }
+
       result = NervesBurner.Downloader.check_cached_file(test_file, asset_info)
 
       assert result == :not_found
@@ -149,7 +162,13 @@ defmodule NervesBurner.DownloaderTest do
       # Store hash first
       NervesBurner.Downloader.store_hash(test_file)
 
-      asset_info = %{url: "http://example.com", name: "test.fw", size: 999_999}
+      asset_info = %{
+        url: "http://example.com",
+        name: "test.fw",
+        size: 999_999,
+        sha256sums_url: nil
+      }
+
       result = NervesBurner.Downloader.check_cached_file(test_file, asset_info)
 
       assert result == :invalid
@@ -157,10 +176,44 @@ defmodule NervesBurner.DownloaderTest do
 
     test "returns :not_found for non-existent file" do
       non_existent = "/tmp/does_not_exist_#{:os.system_time(:millisecond)}.fw"
-      asset_info = %{url: "http://example.com", name: "test.fw", size: 1000}
+
+      asset_info = %{
+        url: "http://example.com",
+        name: "test.fw",
+        size: 1000,
+        sha256sums_url: nil
+      }
+
       result = NervesBurner.Downloader.check_cached_file(non_existent, asset_info)
 
       assert result == :not_found
+    end
+
+    test "shows warning when SHA256SUMS cannot be fetched from server", %{
+      test_file: test_file,
+      content_size: size
+    } do
+      # Store hash first
+      NervesBurner.Downloader.store_hash(test_file)
+
+      # Provide a non-nil sha256sums_url (but it won't be accessible in tests)
+      asset_info = %{
+        url: "http://example.com",
+        name: "test.fw",
+        size: size,
+        sha256sums_url: "http://example.com/SHA256SUMS"
+      }
+
+      # Capture IO to verify warning is shown
+      result =
+        capture_io(fn ->
+          result = NervesBurner.Downloader.check_cached_file(test_file, asset_info)
+          send(self(), {:result, result})
+        end)
+
+      assert_received {:result, :valid}
+      assert result =~ "Warning: Could not verify firmware hash with server"
+      assert result =~ "Using cached firmware with local hash verification only"
     end
   end
 
