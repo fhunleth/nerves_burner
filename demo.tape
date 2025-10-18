@@ -19,8 +19,8 @@ Output demo.gif
 
 # Set up a custom font size and theme
 Set FontSize 14
-Set Width 1400
-Set Height 900
+Set Width 1024
+Set Height 768
 Set Theme "Dracula"
 Set Padding 20
 
