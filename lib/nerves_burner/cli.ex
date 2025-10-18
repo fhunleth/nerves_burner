@@ -18,18 +18,18 @@ defmodule NervesBurner.CLI do
     fwup_available = NervesBurner.Fwup.available?()
 
     with {:ok, image_config} <- select_firmware_image(),
-         {:ok, platform} <- select_platform(image_config) do
-      # Check if this platform uses image assets
-      platform_override =
-        NervesBurner.FirmwareImages.get_platform_override(image_config, platform)
+         {:ok, target} <- select_target(image_config) do
+      # Check if this target uses image assets
+      target_override =
+        NervesBurner.FirmwareImages.get_target_override(image_config, target)
 
-      uses_image_asset = platform_override && platform_override.use_image_asset
+      uses_image_asset = target_override && target_override.use_image_asset
 
       if uses_image_asset do
         # Image asset workflow - download only, no WiFi config, no burning
-        case download_firmware(image_config, platform) do
+        case download_firmware(image_config, target) do
           {:ok, firmware_path} ->
-            print_image_asset_instructions(firmware_path, image_config, platform)
+            print_image_asset_instructions(firmware_path, image_config, target)
 
           {:error, reason} ->
             Output.error("\n✗ Error: #{reason}\n")
@@ -40,12 +40,12 @@ defmodule NervesBurner.CLI do
         if fwup_available do
           # Full workflow with fwup
           with {:ok, wifi_config} <- get_wifi_credentials(),
-               {:ok, firmware_path} <- download_firmware(image_config, platform),
+               {:ok, firmware_path} <- download_firmware(image_config, target),
                {:ok, device} <- select_device(),
                :ok <- burn_firmware(firmware_path, device, wifi_config) do
             Output.success("\n✓ Firmware burned successfully!\n")
             Output.info("You can now safely remove the MicroSD card.\n")
-            print_next_steps(image_config, platform)
+            print_next_steps(image_config, target)
           else
             {:error, :cancelled} ->
               IO.puts(IO.ANSI.format([:yellow, "\nOperation cancelled by user.\n", :reset]))
@@ -68,7 +68,7 @@ defmodule NervesBurner.CLI do
           end
         else
           # Download-only workflow without fwup
-          case download_firmware(image_config, platform) do
+          case download_firmware(image_config, target) do
             {:ok, firmware_path} ->
               print_manual_burn_instructions(firmware_path)
 
@@ -157,24 +157,24 @@ defmodule NervesBurner.CLI do
     IO.puts("\n")
   end
 
-  defp select_platform(image_config) do
-    platforms = image_config.platforms
+  defp select_target(image_config) do
+    targets = image_config.targets
 
-    Output.section("\nSelect a platform:\n")
+    Output.section("\nSelect a target:\n")
 
-    platforms
+    targets
     |> Enum.with_index(1)
-    |> Enum.each(fn {platform, index} ->
-      friendly_name = NervesBurner.FirmwareImages.platform_name(platform)
+    |> Enum.each(fn {target, index} ->
+      friendly_name = NervesBurner.FirmwareImages.target_display_name(target)
       Output.menu_option(index, friendly_name)
     end)
 
     case get_user_choice(
-           "\nEnter your choice (1-#{length(platforms)}): ",
-           1..length(platforms)
+           "\nEnter your choice (1-#{length(targets)}): ",
+           1..length(targets)
          ) do
       {:ok, choice} ->
-        {:ok, Enum.at(platforms, choice - 1)}
+        {:ok, Enum.at(targets, choice - 1)}
 
       error ->
         error
@@ -211,10 +211,10 @@ defmodule NervesBurner.CLI do
     end
   end
 
-  defp download_firmware(image_config, platform) do
+  defp download_firmware(image_config, target) do
     Output.section("\nDownloading firmware...")
 
-    case NervesBurner.Downloader.download(image_config, platform) do
+    case NervesBurner.Downloader.download(image_config, target) do
       {:ok, path} ->
         Output.labeled("✓ Download complete: ", "#{path}\n", :green)
         {:ok, path}
@@ -460,17 +460,17 @@ defmodule NervesBurner.CLI do
     )
   end
 
-  defp print_image_asset_instructions(firmware_path, image_config, platform) do
+  defp print_image_asset_instructions(firmware_path, image_config, target) do
     Output.success("\n✓ Firmware downloaded successfully!\n")
 
     Output.section("Downloaded Image:\n")
     Output.labeled("File location: ", "#{firmware_path}\n", :cyan)
 
-    print_next_steps(image_config, platform)
+    print_next_steps(image_config, target)
   end
 
-  defp print_next_steps(image_config, platform) do
-    case NervesBurner.FirmwareImages.next_steps(image_config, platform) do
+  defp print_next_steps(image_config, target) do
+    case NervesBurner.FirmwareImages.next_steps(image_config, target) do
       nil ->
         :ok
 

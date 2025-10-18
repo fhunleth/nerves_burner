@@ -21,7 +21,7 @@ defmodule NervesBurner.FirmwareImagesTest do
         assert is_binary(name)
         assert is_map(config)
         assert Map.has_key?(config, :repo)
-        assert Map.has_key?(config, :platforms)
+        assert Map.has_key?(config, :targets)
         assert Map.has_key?(config, :fw_asset_pattern)
         assert Map.has_key?(config, :image_asset_pattern)
         assert Map.has_key?(config, :description)
@@ -44,20 +44,20 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert "Nerves Livebook" in names
     end
 
-    test "each image has valid platforms" do
+    test "each image has valid targets" do
       images = NervesBurner.FirmwareImages.list()
 
       Enum.each(images, fn {_name, config} ->
-        assert is_list(config.platforms)
-        assert length(config.platforms) > 0
-        Enum.each(config.platforms, &assert(is_binary(&1)))
+        assert is_list(config.targets)
+        assert length(config.targets) > 0
+        Enum.each(config.targets, &assert(is_binary(&1)))
       end)
     end
 
-    test "includes all expected platforms" do
+    test "includes all expected targets" do
       images = NervesBurner.FirmwareImages.list()
 
-      expected_platforms = [
+      expected_targets = [
         "rpi",
         "rpi0",
         "rpi0_2",
@@ -74,9 +74,9 @@ defmodule NervesBurner.FirmwareImagesTest do
       ]
 
       Enum.each(images, fn {_name, config} ->
-        Enum.each(expected_platforms, fn platform ->
-          assert platform in config.platforms,
-                 "Platform #{platform} should be in the platforms list"
+        Enum.each(expected_targets, fn target ->
+          assert target in config.targets,
+                 "Target #{target} should be in the targets list"
         end)
       end)
     end
@@ -113,39 +113,39 @@ defmodule NervesBurner.FirmwareImagesTest do
     end
   end
 
-  describe "platform_name/1" do
-    test "returns friendly names for known platforms" do
-      assert NervesBurner.FirmwareImages.platform_name("rpi") ==
+  describe "target_name/1" do
+    test "returns friendly names for known targets" do
+      assert NervesBurner.FirmwareImages.target_display_name("rpi") ==
                "Raspberry Pi Model B (rpi)"
 
-      assert NervesBurner.FirmwareImages.platform_name("rpi0") ==
+      assert NervesBurner.FirmwareImages.target_display_name("rpi0") ==
                "Raspberry Pi Zero (rpi0)"
 
-      assert NervesBurner.FirmwareImages.platform_name("rpi0_2") ==
+      assert NervesBurner.FirmwareImages.target_display_name("rpi0_2") ==
                "Raspberry Pi Zero 2W in 64-bit mode (rpi0_2)"
 
-      assert NervesBurner.FirmwareImages.platform_name("rpi3a") ==
+      assert NervesBurner.FirmwareImages.target_display_name("rpi3a") ==
                "Raspberry Pi Zero 2W or 3A in 32-bit mode (rpi3a)"
 
-      assert NervesBurner.FirmwareImages.platform_name("bbb") ==
+      assert NervesBurner.FirmwareImages.target_display_name("bbb") ==
                "Beaglebone Black and other Beaglebone variants (bbb)"
 
-      assert NervesBurner.FirmwareImages.platform_name("grisp2") ==
+      assert NervesBurner.FirmwareImages.target_display_name("grisp2") ==
                "GRiSP 2 (grisp2)"
     end
 
-    test "returns platform code for unknown platforms" do
-      assert NervesBurner.FirmwareImages.platform_name("unknown") == "unknown"
+    test "returns target code for unknown targets" do
+      assert NervesBurner.FirmwareImages.target_display_name("unknown") == "unknown"
     end
   end
 
   describe "next_steps/2" do
     test "returns nil for image config without next_steps" do
-      config = %{repo: "test/test", platforms: ["rpi"]}
+      config = %{repo: "test/test", targets: ["rpi"]}
       assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == nil
     end
 
-    test "returns default next steps when no platform-specific steps exist" do
+    test "returns default next steps when no target-specific steps exist" do
       config = %{
         next_steps: "Default steps here"
       }
@@ -153,7 +153,7 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == "Default steps here"
     end
 
-    test "returns platform-specific next steps when available via overrides" do
+    test "returns target-specific next steps when available via overrides" do
       config = %{
         next_steps: "Default steps",
         overrides: %{
@@ -166,7 +166,7 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert NervesBurner.FirmwareImages.next_steps(config, "rpi") == "RPi specific steps"
     end
 
-    test "falls back to default when platform-specific steps not found in overrides" do
+    test "falls back to default when target-specific steps not found in overrides" do
       config = %{
         next_steps: "Default steps",
         overrides: %{
@@ -197,7 +197,7 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert String.length(config.next_steps) > 0
     end
 
-    test "next_steps for Circuits Quickstart returns proper steps for grisp2 platform" do
+    test "next_steps for Circuits Quickstart returns proper steps for grisp2 target" do
       images = NervesBurner.FirmwareImages.list()
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
 
@@ -206,7 +206,7 @@ defmodule NervesBurner.FirmwareImagesTest do
       assert steps =~ ~r/GRiSP 2/i
     end
 
-    test "next_steps for Circuits Quickstart falls back to default for platforms without specific steps" do
+    test "next_steps for Circuits Quickstart falls back to default for targets without specific steps" do
       images = NervesBurner.FirmwareImages.list()
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
 
@@ -225,30 +225,30 @@ defmodule NervesBurner.FirmwareImagesTest do
     end
   end
 
-  describe "get_platform_override/2" do
+  describe "get_target_override/2" do
     test "returns nil when no overrides exist" do
-      config = %{repo: "test/test", platforms: ["rpi"]}
-      assert NervesBurner.FirmwareImages.get_platform_override(config, "rpi") == nil
+      config = %{repo: "test/test", targets: ["rpi"]}
+      assert NervesBurner.FirmwareImages.get_target_override(config, "rpi") == nil
     end
 
-    test "returns nil when platform not in overrides" do
+    test "returns nil when target not in overrides" do
       config = %{
         overrides: %{
           "rpi" => %{use_image_asset: true}
         }
       }
 
-      assert NervesBurner.FirmwareImages.get_platform_override(config, "bbb") == nil
+      assert NervesBurner.FirmwareImages.get_target_override(config, "bbb") == nil
     end
 
-    test "returns override config when platform exists" do
+    test "returns override config when target exists" do
       config = %{
         overrides: %{
           "rpi" => %{use_image_asset: true, next_steps: "RPi steps"}
         }
       }
 
-      override = NervesBurner.FirmwareImages.get_platform_override(config, "rpi")
+      override = NervesBurner.FirmwareImages.get_target_override(config, "rpi")
       assert override == %{use_image_asset: true, next_steps: "RPi steps"}
     end
 
@@ -256,7 +256,7 @@ defmodule NervesBurner.FirmwareImagesTest do
       images = NervesBurner.FirmwareImages.list()
       {_name, config} = Enum.find(images, fn {name, _} -> name == "Circuits Quickstart" end)
 
-      override = NervesBurner.FirmwareImages.get_platform_override(config, "grisp2")
+      override = NervesBurner.FirmwareImages.get_target_override(config, "grisp2")
       assert override != nil
       assert override.use_image_asset == true
       assert is_binary(override.next_steps)

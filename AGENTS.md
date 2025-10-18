@@ -92,7 +92,7 @@ lib/
 **Key Functions**:
 - `main/1` - Entry point for escript, orchestrates the entire flow
 - `select_firmware_image/0` - Interactive firmware selection menu
-- `select_platform/1` - Platform selection menu
+- `select_target/1` - Target selection menu
 - `select_device/0` - Device selection with rescan option
 - `confirm_device/1` - Safety confirmation dialog (requires "yes")
 - `configure_wifi/0` - WiFi credentials configuration (optional)
@@ -110,22 +110,22 @@ lib/
 %{
   repo: "org/repo",                    # GitHub repository
   description: "Description text",     # User-facing description
-  platforms: ["rpi4", "rpi5", ...],   # Supported platforms
-  asset_pattern: fn platform -> ... end, # Asset filename pattern
-  fallback_asset_pattern: fn platform -> ... end, # For non-fwup formats
+  targets: ["rpi4", "rpi5", ...],   # Supported targets
+  asset_pattern: fn target -> ... end, # Asset filename pattern
+  fallback_asset_pattern: fn target -> ... end, # For non-fwup formats
   next_steps: %{                       # Post-burn instructions
     default: "...",
-    platforms: %{"platform" => "..."}
+    targets: %{"target" => "..."}
   }
 }
 ```
 
 **Key Functions**:
 - `list/0` - Returns list of {name, config} tuples
-- `platform_name/1` - Maps platform code to friendly name
-- `next_steps/2` - Returns platform-specific or default next steps
+- `target_name/1` - Maps target code to friendly name
+- `next_steps/2` - Returns target-specific or default next steps
 
-**Supported Platforms**:
+**Supported Targets**:
 - Raspberry Pi: rpi, rpi0, rpi0_2, rpi2, rpi3, rpi3a, rpi4, rpi5
 - BeagleBone Black: bbb
 - OSD32MP1: osd32mp1
@@ -319,7 +319,7 @@ mix test --cover
 - **Status**: All passing
 - **Coverage areas**:
   - Firmware image configuration
-  - Platform name mapping
+  - Target name mapping
   - Next steps retrieval
   - Fwup device parsing
   - Output formatting
@@ -439,7 +439,7 @@ When fwup is not available:
 
 - Post-burn instructions displayed to user
 - Customizable per firmware
-- Platform-specific overrides available
+- Target-specific overrides available
 - Links to documentation and getting started guides
 
 ### 6. ANSI Colors and Formatting
@@ -490,7 +490,7 @@ Follow the [Elixir Style Guide](https://github.com/christopheradams/elixir_style
 
 - Boolean functions: `available?`, `valid?`, `exists?`
 - Functions that perform side effects: imperative verbs (`burn`, `download`, `scan`)
-- Functions that return data: nouns or descriptive phrases (`platform_name`, `next_steps`)
+- Functions that return data: nouns or descriptive phrases (`target_name`, `next_steps`)
 
 ## Common Tasks
 
@@ -502,9 +502,9 @@ Follow the [Elixir Style Guide](https://github.com/christopheradams/elixir_style
  %{
    repo: "user/my_firmware",
    description: "Description of firmware",
-   platforms: ["rpi4", "rpi5"],
-   asset_pattern: fn platform -> "my_firmware_#{platform}.fw" end,
-   fallback_asset_pattern: fn platform -> "my_firmware_#{platform}.zip" end,
+   targets: ["rpi4", "rpi5"],
+   asset_pattern: fn target -> "my_firmware_#{target}.fw" end,
+   fallback_asset_pattern: fn target -> "my_firmware_#{target}.zip" end,
    next_steps: %{
      default: """
      Instructions here...
@@ -516,15 +516,15 @@ Follow the [Elixir Style Guide](https://github.com/christopheradams/elixir_style
 2. Add tests in `test/nerves_burner/firmware_images_test.exs`
 3. Update README.md with new firmware info
 
-### Adding a New Platform
+### Adding a New Target
 
-1. Add platform to supported platforms list in firmware config
-2. Add friendly name in `NervesBurner.FirmwareImages.platform_name/1`:
+1. Add target to supported targets list in firmware config
+2. Add friendly name in `NervesBurner.FirmwareImages.target_name/1`:
 ```elixir
-def platform_name("new_platform"), do: "Friendly Name (new_platform)"
+def target_display_name("new_target"), do: "Friendly Name (new_target)"
 ```
 
-3. Ensure asset pattern handles the new platform
+3. Ensure asset pattern handles the new target
 4. Add tests
 
 ### Modifying Output Formatting

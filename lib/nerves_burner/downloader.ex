@@ -10,22 +10,22 @@ defmodule NervesBurner.Downloader do
   alias NervesBurner.Output
 
   @doc """
-  Downloads firmware for the specified image config and platform.
+  Downloads firmware for the specified image config and target.
   If fwup is available, downloads .fw file. Otherwise, downloads alternative format (zip or img.gz).
-  Some platforms may require image assets regardless of fwup availability (via overrides).
+  Some targets may require image assets regardless of fwup availability (via overrides).
   """
-  def download(image_config, platform) do
+  def download(image_config, target) do
     fwup_available = NervesBurner.Fwup.available?()
-    platform_override = NervesBurner.FirmwareImages.get_platform_override(image_config, platform)
+    target_override = NervesBurner.FirmwareImages.get_target_override(image_config, target)
 
     # Determine which asset pattern to use
     {asset_name, use_image_asset} =
-      if platform_override && platform_override.use_image_asset do
-        # Platform override forces use of image asset
-        {image_config.image_asset_pattern.(platform), true}
+      if target_override && target_override.use_image_asset do
+        # Target override forces use of image asset
+        {image_config.image_asset_pattern.(target), true}
       else
         # Default to fw asset (but may fall back to image if fwup not available)
-        {image_config.fw_asset_pattern.(platform), false}
+        {image_config.fw_asset_pattern.(target), false}
       end
 
     with {:ok, release_url} <- get_latest_release_url(image_config.repo),
@@ -36,7 +36,7 @@ defmodule NervesBurner.Downloader do
              fwup_available,
              use_image_asset
            ),
-         {:ok, firmware_path} <- download_file(asset_info, platform) do
+         {:ok, firmware_path} <- download_file(asset_info, target) do
       {:ok, firmware_path}
     end
   end
@@ -77,7 +77,7 @@ defmodule NervesBurner.Downloader do
           end
 
         if use_image_asset do
-          # Platform requires image asset, show appropriate message
+          # Target requires image asset, show appropriate message
           find_image_asset(assets, asset_name, sha256sums_url)
         else
           if fwup_available do
@@ -116,7 +116,7 @@ defmodule NervesBurner.Downloader do
     case Enum.find(assets, fn asset -> asset["name"] == asset_name end) do
       %{"browser_download_url" => download_url} = asset ->
         Output.warning(
-          "\nNote: This platform requires img.gz format for installation. Downloading: #{asset_name}"
+          "\nNote: This target requires img.gz format for installation. Downloading: #{asset_name}"
         )
 
         asset_info = %{
@@ -176,7 +176,7 @@ defmodule NervesBurner.Downloader do
     end
   end
 
-  defp download_file(asset_info, _platform) do
+  defp download_file(asset_info, _target) do
     url = asset_info.url
     cache_dir = get_cache_dir()
     cache_path = Path.join(cache_dir, asset_info.name)

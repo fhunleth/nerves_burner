@@ -26,7 +26,7 @@ defmodule NervesBurner.FirmwareImages do
          Great starting point for anyone new to hardware programming with Nerves.
          """,
          url: "https://github.com/elixir-circuits/circuits_quickstart",
-         platforms: [
+         targets: [
            "rpi",
            "rpi0",
            "rpi0_2",
@@ -41,8 +41,8 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         fw_asset_pattern: fn platform -> "circuits_quickstart_#{platform}.fw" end,
-         image_asset_pattern: fn platform -> "circuits_quickstart_#{platform}.img.gz" end,
+         fw_asset_pattern: fn target -> "circuits_quickstart_#{target}.fw" end,
+         image_asset_pattern: fn target -> "circuits_quickstart_#{target}.img.gz" end,
          next_steps: """
          For instructions on using Circuits Quickstart, please visit:
          https://github.com/elixir-circuits/circuits_quickstart?tab=readme-ov-file#testing-the-firmware
@@ -72,7 +72,7 @@ defmodule NervesBurner.FirmwareImages do
          Ideal for learning Elixir, experimenting with Nerves, or building prototypes interactively.
          """,
          url: "https://github.com/nerves-livebook/nerves_livebook",
-         platforms: [
+         targets: [
            "rpi",
            "rpi0",
            "rpi0_2",
@@ -87,8 +87,8 @@ defmodule NervesBurner.FirmwareImages do
            "grisp2",
            "mangopi_mq_pro"
          ],
-         fw_asset_pattern: fn platform -> "nerves_livebook_#{platform}.fw" end,
-         image_asset_pattern: fn platform -> "nerves_livebook_#{platform}.img.gz" end,
+         fw_asset_pattern: fn target -> "nerves_livebook_#{target}.fw" end,
+         image_asset_pattern: fn target -> "nerves_livebook_#{target}.img.gz" end,
          next_steps: """
          For instructions on getting started, please visit:
          https://github.com/nerves-livebook/nerves_livebook#readme
@@ -107,10 +107,16 @@ defmodule NervesBurner.FirmwareImages do
   end
 
   @doc """
-  Returns the friendly name for a platform code.
+  Returns a human-friendly display name for a target
+
+  Examples:
+
+      iex> NervesBurner.FirmwareImages.target_display_name("rpi")
+      "Raspberry Pi Model B (rpi)"
   """
-  def platform_name(platform) do
-    case platform do
+  @spec target_display_name(String.t()) :: String.t()
+  def target_display_name(target) do
+    case target do
       "rpi" -> "Raspberry Pi Model B (rpi)"
       "rpi0" -> "Raspberry Pi Zero (rpi0)"
       "rpi0_2" -> "Raspberry Pi Zero 2W in 64-bit mode (rpi0_2)"
@@ -124,19 +130,19 @@ defmodule NervesBurner.FirmwareImages do
       "npi_imx6ull" -> "NPI i.MX6 ULL (npi_imx6ull)"
       "grisp2" -> "GRiSP 2 (grisp2)"
       "mangopi_mq_pro" -> "MangoPi MQ Pro (mangopi_mq_pro)"
-      _ -> platform
+      _ -> target
     end
   end
 
   @doc """
-  Returns the next steps for a given firmware image and platform.
+  Returns the next steps for a given firmware image and target.
 
-  Checks for platform-specific next steps in overrides first, then falls back to default.
+  Checks for target-specific next steps in overrides first, then falls back to default.
   Returns nil if no next steps are defined.
   """
-  def next_steps(image_config, platform) do
-    # Check for platform overrides first
-    case get_platform_override(image_config, platform) do
+  def next_steps(image_config, target) do
+    # Check for target overrides first
+    case get_target_override(image_config, target) do
       %{next_steps: override_steps} ->
         override_steps
 
@@ -147,12 +153,12 @@ defmodule NervesBurner.FirmwareImages do
   end
 
   @doc """
-  Returns the platform-specific override configuration if it exists.
+  Returns the target-specific override configuration if it exists.
   """
-  def get_platform_override(image_config, platform) do
+  def get_target_override(image_config, target) do
     case Map.get(image_config, :overrides) do
       nil -> nil
-      overrides -> Map.get(overrides, platform)
+      overrides -> Map.get(overrides, target)
     end
   end
 end

@@ -38,7 +38,7 @@ Type "1"
 Sleep 300ms
 Enter
 
-# Select platform - Raspberry Pi 5 (option 8)
+# Select target - Raspberry Pi 5 (option 8)
 Wait /Enter your choice.*/
 Sleep 1s
 Type "8"
