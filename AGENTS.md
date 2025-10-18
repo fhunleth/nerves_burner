@@ -55,10 +55,10 @@ This document provides comprehensive technical information about the Nerves Burn
 └───────────────┘  └──────────────┘  └─────────────────┘
         │                   │                   │
         │                   ▼                   │
-        │           ┌──────────────┐           │
-        │           │VersionChecker│           │
-        │           │ (Auto-update)│           │
-        │           └──────────────┘           │
+        │           ┌──────────────┐            │
+        │           │VersionChecker│            │
+        │           │ (Auto-update)│            │
+        │           └──────────────┘            │
         │                                       │
         └───────────────────┬───────────────────┘
                             ▼
