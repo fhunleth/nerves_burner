@@ -183,7 +183,6 @@ defmodule NervesBurner.CLI do
 
   defp get_wifi_credentials do
     Output.section("\nWould you like to configure WiFi credentials?")
-    Output.info("(This is supported by Circuits Quickstart and Nerves Livebook firmware)\n")
 
     case get_user_input("Configure WiFi? (y/n): ") do
       input when input in ["y", "Y", "yes", "Yes", "YES"] ->
