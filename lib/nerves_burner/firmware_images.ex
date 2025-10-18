@@ -15,15 +15,16 @@ defmodule NervesBurner.FirmwareImages do
       {"Circuits Quickstart",
        %{
          repo: "elixir-circuits/circuits_quickstart",
-         description: "Simple examples for GPIO, I2C, SPI and more",
+         description: "Minimal image for trying out GPIO, I2C, SPI and more",
          long_description: """
-         A collection of ready-to-run examples demonstrating how to use Elixir Circuits libraries for hardware interaction. Perfect for learning and experimentation with:
-         - GPIO (General Purpose Input/Output) pins
-         - I2C communication with sensors and peripherals
-         - SPI (Serial Peripheral Interface) devices
-         - PWM (Pulse Width Modulation) for controlling LEDs and motors
+         This is a good first image if you'd like to Nerves on a device. It
+         sets up networking and an ssh server for remote access to an IEx
+         prompt.
 
-         Great starting point for anyone new to hardware programming with Nerves.
+         All Elixir Circuits libraries are included for ease of trying out
+         hardware programming using I2C, SPI, GPIOs and UARTs. It also serves
+         as a known good image when debugging boot and hardware initialization
+         problems.
          """,
          url: "https://github.com/elixir-circuits/circuits_quickstart",
          targets: [
@@ -62,14 +63,15 @@ defmodule NervesBurner.FirmwareImages do
          repo: "nerves-livebook/nerves_livebook",
          description: "Interactive notebooks for learning Elixir and Nerves",
          long_description: """
-         Run Livebook directly on your embedded device for an interactive development and learning experience. Features include:
-         - Pre-installed notebooks with Nerves examples and tutorials
-         - Interactive code execution and visualization
-         - Built-in documentation and learning resources
-         - WiFi configuration support for easy network access
-         - Explore hardware capabilities through live coding
+         Run Livebook directly on your embedded device for an interactive development or learning experience.
 
-         Ideal for learning Elixir, experimenting with Nerves, or building prototypes interactively.
+         Includes:
+
+         - Pre-installed notebooks with Nerves examples and tutorials
+         - Many Elixir libraries for use in notebooks
+         - Support for storing notebooks on device
+
+         Ideal for experimenting with Nerves or building prototypes interactively.
          """,
          url: "https://github.com/nerves-livebook/nerves_livebook",
          targets: [
