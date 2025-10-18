@@ -7,6 +7,11 @@
 
 This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.2.1 - 2025-10-18
+
+* Changes
+  * Various menu and naming cleanup
+
 ## v0.2.0 - 2025-10-15
 
 * Changes
